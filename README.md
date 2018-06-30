@@ -25,7 +25,7 @@ Returns an async generator that yields `Block` instances.
 The last block instance returned is the `dag-cbor` block for
 the root node.
 
-### unixfs.dir(path[, chunkSize=1meg])
+### unixfs.file(path[, chunkSize=1meg])
 
 Returns an async generator that yields `Block` instances.
 
