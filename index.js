@@ -93,7 +93,7 @@ class FS {
       root = new CID(root)
     }
     if (root.toBaseEncodedString) {
-      this.root = _get(root)
+      this.root = _get(root).then(block => deserialize(block.data))
     } else {
       this.root = root
     }
@@ -106,17 +106,18 @@ class FS {
       let key = path.shift()
       if (!parent.data[key]) throw new Error('NotFound')
       let cid = new CID(parent.data[key]['/'])
-      parent = await this._get(cid)
+      parent = await deserialize((await this._get(cid)).data)
     }
     if (!parent || parent.type !== type) throw new Error('NotFound')
     return parent
   }
   ls (path, objects = false) {
+    let self = this
     return (async function * () {
-      let dir = await this._walk(path, 'dir')
+      let dir = await self._walk(path, 'dir')
       for (let key of Object.keys(dir.data)) {
         if (objects) {
-          let block = await this._get(new CID(dir.data[key]['/']))
+          let block = await self._get(new CID(dir.data[key]['/']))
           yield deserialize(block.data)
         } else {
           yield key
@@ -125,10 +126,11 @@ class FS {
     })()
   }
   read (path) {
+    let self = this
     return (async function * () {
-      let f = await this._walk(path, 'dir')
-      for (let cid of f.data) {
-        let block = await this._get(cid)
+      let f = await self._walk(path, 'file')
+      for (let link of f.data) {
+        let block = await self._get(new CID(link['/']))
         yield block
       }
     })()
