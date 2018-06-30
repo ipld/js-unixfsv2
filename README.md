@@ -6,10 +6,11 @@ Usage:
 const unixfs = require('unixfsv2')
 const blockstore = require('some-block-store')
 
-const getDirectory = async path => {
+const storeDirectory = async path => {
   let last
   for await (let block of unixfs(__dirname)) {
     await blockstore.put(block)
+    last = block
   }
   return last.cid.toBaseEncodedString()
 }
