@@ -13,6 +13,7 @@
     "cids": "^0.5.3",
     "ipfs-block": "^0.7.1",
     "ipld-dag-cbor": "^0.12.1",
+    "mime-types": "^2.1.18",
     "multihashes": "^0.4.13",
     "stream-chunker": "^1.2.8"
   },

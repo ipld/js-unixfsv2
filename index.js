@@ -8,6 +8,8 @@ const CID = require('cids')
 const multihashes = require('multihashes')
 const crypto = require('crypto')
 const path = require('path')
+const mime = require('mime-types')
+
 const {stat, readdir} = fs.promises
 
 const serialize = util.promisify(cbor.util.serialize)
@@ -92,10 +94,14 @@ class FS {
     if (typeof root === 'string') {
       root = new CID(root)
     }
+    this.cid = root
     if (root.toBaseEncodedString) {
-      this.root = _get(root).then(block => deserialize(block.data))
+      this.root = _get(root).then(block => {
+        this.rootBlock = block
+        return deserialize(block.data)
+      })
     } else {
-      this.root = root
+      throw new Error('Root must be CID.')
     }
   }
   async _walk (path, type) {
@@ -135,4 +141,54 @@ class FS {
       }
     })()
   }
+  async block (path) {
+    path = path.split('/')
+    await this.root
+    let block = this.rootBlock
+    while (path.length) {
+      let key = path.shift()
+      let node = await deserialize(block.data)
+      if (!node.data[key]) throw new Error('NotFound')
+      block = await this._get(new CID(node.data[key]['/']))
+    }
+    return block
+  }
 }
+
+const serve = (root, get) => {
+  let f = new FS(root, get)
+  return async (req, res) => {
+    let path = req.url
+    if (path.endsWith('/')) path += 'index.html'
+
+    let block
+    try {
+      block = await f.block(path)
+    } catch (e) {
+      if (e.message === 'NotFound') {
+        res.statusCode = 404
+        res.end()
+        return
+      } else {
+        res.statusCode = 500
+        res.end()
+        console.error(e)
+        return
+      }
+    }
+    let node = await deserialize(block.data)
+    res.setHeader('Content-Length', node.size)
+    res.setHeader('Etag', block.cid.toBaseEncodedString())
+    res.setHeader('Content-Type', mime.contentType(path) || 'application/octet-stream')
+
+    res.statusCode = 200
+
+    for (let link of node.data) {
+      block = await get(new CID(link['/']))
+      res.write(block.data)
+    }
+    res.end()
+  }
+}
+
+exports.serve = serve

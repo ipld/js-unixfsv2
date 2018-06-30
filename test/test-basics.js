@@ -1,9 +1,13 @@
+const cbor = require('ipld-dag-cbor')
+const util = require('util')
 const {test} = require('tap')
 const unixfs = require('../')
 const path = require('path')
 const fs = require('fs').promises
 
 const fixture = path.join(__dirname, 'fixture')
+
+const deserialize = util.promisify(cbor.util.deserialize)
 
 test('dir', async t => {
   let last
@@ -48,4 +52,21 @@ test('read', async t => {
     await join(fs.read('dir2/dir3/file3')),
     await getfile('dir2', 'dir3', 'file3')
   )
+})
+
+test('block', async t => {
+  let {get, cid} = await fullFixture()
+  let fs = unixfs.fs(cid, get)
+
+  let block = await fs.block('file1')
+  let node = await deserialize(block.data)
+  t.same(node.size, 1024)
+
+  block = await fs.block('file2')
+  node = await deserialize(block.data)
+  t.same(node.size, 2048)
+
+  block = await fs.block('dir2/dir3/file3')
+  node = await deserialize(block.data)
+  t.same(node.size, 0)
 })
