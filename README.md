@@ -40,7 +40,7 @@ const load = async dir => {
   let last
   for await (let block of unixfs.dir(dir)) {
     last = block
-    map.set(block.cid.toBaseEncodedString(), block)
+    map.set(block.cid.toBaseEncodedString(), block.data)
   }
   return {
     cid: last.cid,
@@ -60,7 +60,7 @@ for await (let block of fs.read('/sub/dir/file.txt')) {
 ```
 
 `cid` is an instance of `CID`. `get` is an async functions that takes
-a `CID` instance and returns a `Block` instance.
+a `CID` instance and returns a Buffer.
 
 #### fs.ls(path-to-dir[, objects = false])
 

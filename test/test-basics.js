@@ -17,8 +17,8 @@ test('dir', async t => {
     counts[block.cid.codec] += 1
   }
   t.same(last.cid.codec, 'dag-cbor')
-  t.same(counts.raw, 3)
-  t.same(counts['dag-cbor'], 7)
+  t.same(counts.raw, 4)
+  t.same(counts['dag-cbor'], 8)
 })
 
 const fullFixture = async () => {
@@ -26,7 +26,7 @@ const fullFixture = async () => {
   let last
   for await (let block of unixfs.dir(fixture, true, 1024)) {
     last = block
-    map.set(block.cid.toBaseEncodedString(), block)
+    map.set(block.cid.toBaseEncodedString(), block.data)
   }
   return {
     get: async cid => map.get(cid.toBaseEncodedString()),

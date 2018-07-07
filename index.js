@@ -32,7 +32,7 @@ const onemeg = 1000000
 const file = (path, chunkSize = onemeg) => {
   let stream = fs.createReadStream(path)
   return (async function * () {
-    let chunker = stream.pipe(streamChunker(chunkSize))
+    let chunker = stream.pipe(streamChunker(chunkSize, {flush: true}))
     let reader = chunker.pipe(new PassThrough({objectMode: true}))
 
     let parts = []
@@ -78,7 +78,7 @@ const dir = (_path, recursive = true, chunkSize = onemeg) => {
       }
 
       data[name] = {'/': last.cid.toBaseEncodedString()}
-      size += deserialize(last.data).size
+      size += (await deserialize(last.data)).size
     }
     yield await mkcbor({size, data, type: 'dir'})
   })()
@@ -96,9 +96,12 @@ class FS {
     }
     this.cid = root
     if (root.toBaseEncodedString) {
-      this.root = _get(root).then(block => {
-        this.rootBlock = block
-        return deserialize(block.data)
+      this.rootBuffer = _get(root)
+      this.rootBlock = this.rootBuffer.then(buffer => {
+        return new Block(buffer, this.cid)
+      })
+      this.root = this.rootBuffer.then(buffer => {
+        return deserialize(buffer)
       })
     } else {
       throw new Error('Root must be CID.')
@@ -112,7 +115,7 @@ class FS {
       let key = path.shift()
       if (!parent.data[key]) throw new Error('NotFound')
       let cid = new CID(parent.data[key]['/'])
-      parent = await deserialize((await this._get(cid)).data)
+      parent = await deserialize((await this._get(cid)))
     }
     if (!parent || parent.type !== type) throw new Error('NotFound')
     return parent
@@ -124,7 +127,7 @@ class FS {
       for (let key of Object.keys(dir.data)) {
         if (objects) {
           let block = await self._get(new CID(dir.data[key]['/']))
-          yield deserialize(block.data)
+          yield deserialize(block)
         } else {
           yield key
         }
@@ -136,59 +139,65 @@ class FS {
     return (async function * () {
       let f = await self._walk(path, 'file')
       for (let link of f.data) {
-        let block = await self._get(new CID(link['/']))
-        yield block
+        let cid = new CID(link['/'])
+        let buffer = await self._get(cid)
+        yield new Block(buffer, cid)
       }
     })()
   }
   async block (path) {
-    path = path.split('/')
-    await this.root
-    let block = this.rootBlock
+    path = path.split('/').filter(x => x)
+    let block = await this.rootBlock
     while (path.length) {
       let key = path.shift()
       let node = await deserialize(block.data)
       if (!node.data[key]) throw new Error('NotFound')
-      block = await this._get(new CID(node.data[key]['/']))
+      let cid = new CID(node.data[key]['/'])
+      block = new Block(await this._get(cid), cid)
     }
     return block
   }
-}
-
-const serve = (root, get) => {
-  let f = new FS(root, get)
-  return async (req, res) => {
-    let path = req.url
-    if (path.endsWith('/')) path += 'index.html'
-
+  async serve (path, req, res) {
     let block
-    try {
-      block = await f.block(path)
-    } catch (e) {
-      if (e.message === 'NotFound') {
-        res.statusCode = 404
-        res.end()
-        return
-      } else {
-        res.statusCode = 500
-        res.end()
-        console.error(e)
-        return
+
+    let tryblock = async () => {
+      try {
+        block = await this.block(path)
+      } catch (e) {
+        if (e.message === 'NotFound') {
+          res.statusCode = 404
+          res.end()
+        } else {
+          res.statusCode = 500
+          res.end()
+        }
       }
     }
+
+    await tryblock()
+    if (!block) return
     let node = await deserialize(block.data)
-    res.setHeader('Content-Length', node.size)
+    if (node.type === 'dir') {
+      if (!path.endsWith('/')) path += '/'
+      path += 'index.html'
+      block = null
+      await tryblock()
+      if (!block) return
+      node = await deserialize(block.data)
+    }
+
     res.setHeader('Etag', block.cid.toBaseEncodedString())
-    res.setHeader('Content-Type', mime.contentType(path) || 'application/octet-stream')
+
+    res.setHeader('Content-Length', node.size)
+    let contentType = mime.contentType(path.slice(path.lastIndexOf('.')))
+    res.setHeader('Content-Type', contentType || 'application/octet-stream')
 
     res.statusCode = 200
-
     for (let link of node.data) {
-      block = await get(new CID(link['/']))
-      res.write(block.data)
+      let cid = new CID(link['/'])
+      let buffer = await this._get(cid)
+      res.write(buffer)
     }
     res.end()
   }
 }
-
-exports.serve = serve
