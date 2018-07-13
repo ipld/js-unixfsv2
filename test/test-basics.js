@@ -1,7 +1,7 @@
 const cbor = require('ipld-dag-cbor')
 const util = require('util')
 const {test} = require('tap')
-const unixfs = require('../')
+const unixfs = require('../src/index')
 const path = require('path')
 const fs = require('fs').promises
 

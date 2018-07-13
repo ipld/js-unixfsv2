@@ -1,5 +1,5 @@
 const {test} = require('tap')
-const unixfs = require('../')
+const unixfs = require('../src/index')
 const path = require('path')
 const bent = require('bent')
 const http = require('http')
@@ -56,4 +56,3 @@ test('serve txt file', async t => {
   t.same(text, 'small text.')
   server.close()
 })
-
