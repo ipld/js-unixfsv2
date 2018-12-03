@@ -25,8 +25,7 @@ const mkcbor = async obj => {
 
 const onemeg = 1000000
 
-const file = (path, chunker) => {
-  let reader = chunker(path)
+const rawfile = reader => {
   return (async function * () {
     let parts = []
     let size = 0
@@ -44,6 +43,11 @@ const file = (path, chunker) => {
     }
     yield await mkcbor(f)
   })()
+}
+
+const file = (path, chunker) => {
+  let reader = chunker(path)
+  return rawfile(reader)
 }
 
 const fixedChunker = (chunkSize = onemeg) => {
@@ -88,3 +92,4 @@ exports.file = file
 exports.dir = dir
 exports.fs = require('./fs')
 exports.fixedChunker = fixedChunker
+exports.rawfile = rawfile
