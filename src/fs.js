@@ -30,7 +30,7 @@ class FS {
       if (!parent || parent.type !== 'dir') throw new Error('NotFound')
       let key = path.shift()
       if (!parent.data[key]) throw new Error('NotFound')
-      let cid = new CID(parent.data[key]['/'])
+      let cid = parent.data[key]
       parent = await deserialize((await this._get(cid)))
     }
     if (!parent || parent.type !== type) throw new Error('NotFound')
@@ -42,7 +42,7 @@ class FS {
       let dir = await self._walk(path, 'dir')
       for (let key of Object.keys(dir.data)) {
         if (objects) {
-          let block = await self._get(new CID(dir.data[key]['/']))
+          let block = await self._get(dir.data[key])
           yield deserialize(block)
         } else {
           yield key
@@ -54,10 +54,9 @@ class FS {
     let self = this
     return (async function * () {
       let f = await self._walk(path, 'file')
-      for (let link of f.data) {
-        let cid = new CID(link['/'])
-        let buffer = await self._get(cid)
-        yield new Block(buffer, cid)
+      for (let [, link] of f.data) {
+        let buffer = await self._get(link)
+        yield new Block(buffer, link)
       }
     })()
   }
@@ -68,7 +67,7 @@ class FS {
       let key = path.shift()
       let node = await deserialize(block.data)
       if (!node.data[key]) throw new Error('NotFound')
-      let cid = new CID(node.data[key]['/'])
+      let cid = node.data[key]
       block = new Block(await this._get(cid), cid)
     }
     return block
@@ -109,9 +108,9 @@ class FS {
     res.setHeader('Content-Type', contentType || 'application/octet-stream')
 
     res.statusCode = 200
-    for (let link of node.data) {
-      let cid = new CID(link['/'])
-      let buffer = await this._get(cid)
+    for (let [, link] of node.data) {
+      // TODO: validate the length matches metadata
+      let buffer = await this._get(link)
       res.write(buffer)
     }
     res.end()

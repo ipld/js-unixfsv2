@@ -36,16 +36,14 @@ const file = (path, chunkSize = onemeg) => {
 
     for await (let chunk of reader) {
       let block = mkblock(chunk, 'raw')
-      parts.push(block.cid)
+      parts.push([[size, chunk.length], block.cid])
       yield block
       size += chunk.length
     }
     let f = {
       size,
       type: 'file',
-      data: parts.map(cid => {
-        return {'/': cid.toBaseEncodedString()}
-      })
+      data: parts
     }
     yield await mkcbor(f)
   })()
@@ -73,7 +71,7 @@ const dir = (_path, recursive = true, chunkSize = onemeg) => {
         last = block
       }
 
-      data[name] = {'/': last.cid.toBaseEncodedString()}
+      data[name] = last.cid
       size += (await deserialize(last.data)).size
     }
     yield await mkcbor({size, data, type: 'dir'})
