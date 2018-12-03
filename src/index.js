@@ -25,12 +25,9 @@ const mkcbor = async obj => {
 
 const onemeg = 1000000
 
-const file = (path, chunkSize = onemeg) => {
-  let stream = fs.createReadStream(path)
+const file = (path, chunker) => {
+  let reader = chunker(path)
   return (async function * () {
-    let chunker = stream.pipe(streamChunker(chunkSize, {flush: true}))
-    let reader = chunker.pipe(new PassThrough({objectMode: true}))
-
     let parts = []
     let size = 0
 
@@ -49,7 +46,16 @@ const file = (path, chunkSize = onemeg) => {
   })()
 }
 
-const dir = (_path, recursive = true, chunkSize = onemeg) => {
+const fixedChunker = (chunkSize = onemeg) => {
+  return path => {
+    let stream = fs.createReadStream(path)
+    let chunker = stream.pipe(streamChunker(chunkSize, {flush: true}))
+    let reader = chunker.pipe(new PassThrough({objectMode: true}))
+    return reader
+  }
+}
+
+const dir = (_path, recursive = true, chunker = fixedChunker()) => {
   return (async function * () {
     let files = await readdir(_path)
     let size = 0
@@ -60,9 +66,9 @@ const dir = (_path, recursive = true, chunkSize = onemeg) => {
 
       let reader
       if (_stat.isDirectory() && recursive) {
-        reader = dir(fullpath, true, chunkSize)
+        reader = dir(fullpath, true, chunker)
       } else {
-        reader = file(fullpath, chunkSize)
+        reader = file(fullpath, chunker)
       }
 
       let last
@@ -81,3 +87,4 @@ const dir = (_path, recursive = true, chunkSize = onemeg) => {
 exports.file = file
 exports.dir = dir
 exports.fs = require('./fs')
+exports.fixedChunker = fixedChunker

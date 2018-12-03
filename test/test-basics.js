@@ -9,10 +9,12 @@ const fixture = path.join(__dirname, 'fixture')
 
 const deserialize = util.promisify(cbor.util.deserialize)
 
+const chunker = unixfs.fixedChunker(1024)
+
 test('dir', async t => {
   let last
   let counts = {'dag-cbor': 0, 'raw': 0}
-  for await (let block of unixfs.dir(fixture, true, 1024)) {
+  for await (let block of unixfs.dir(fixture, true, chunker)) {
     last = block
     counts[block.cid.codec] += 1
   }
@@ -24,7 +26,7 @@ test('dir', async t => {
 const fullFixture = async () => {
   let map = new Map()
   let last
-  for await (let block of unixfs.dir(fixture, true, 1024)) {
+  for await (let block of unixfs.dir(fixture, true, chunker)) {
     last = block
     map.set(block.cid.toBaseEncodedString(), block.data)
   }

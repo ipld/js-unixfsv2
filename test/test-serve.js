@@ -8,10 +8,12 @@ const getreq = bent()
 
 const fixture = path.join(__dirname, 'fixture')
 
+const chunker = unixfs.fixedChunker(1024)
+
 const fullFixture = async () => {
   let map = new Map()
   let last
-  for await (let block of unixfs.dir(fixture, true, 1024)) {
+  for await (let block of unixfs.dir(fixture, true, chunker)) {
     last = block
     map.set(block.cid.toBaseEncodedString(), block.data)
   }
