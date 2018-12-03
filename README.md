@@ -18,14 +18,14 @@ const storeDirectory = async path => {
 
 ## API
 
-### unixfs.dir(path[, recursive=true][, chunkSize=1meg])
+### unixfs.dir(path[, recursive=true][, chunker=fixedChunker(1meg)])
 
 Returns an async generator that yields `Block` instances.
 
 The last block instance returned is the `dag-cbor` block for
 the root node.
 
-### unixfs.file(path[, chunkSize=1meg])
+### unixfs.file(path[, chunker=fixedChunker(1meg)])
 
 Returns an async generator that yields `Block` instances.
 
