@@ -7,8 +7,6 @@ const fs = require('fs').promises
 
 const fixture = path.join(__dirname, 'fixture')
 
-const deserialize = util.promisify(cbor.util.deserialize)
-
 const chunker = unixfs.fixedChunker(1024)
 
 test('dir', async t => {
@@ -68,4 +66,27 @@ test('find', async t => {
 
   ;[, node] = await fs.find('data/dir2/data/dir3/data/file3')
   t.same(node.size, 0)
+})
+
+test('ls', async t => {
+  let {get, cid} = await fullFixture()
+  let fs = unixfs.fs(cid, get)
+
+  let keys = []
+  for await (let key of fs.ls('/')) {
+    keys.push(key)
+  }
+  t.same(keys, [ 'dir2', 'file1', 'file2', 'small.txt' ])
+
+  keys = []
+  for await (let key of fs.ls('/dir2')) {
+    keys.push(key)
+  }
+  t.same(keys, [ 'dir3' ])
+
+  let objects = []
+  for await (let object of fs.ls('/', true)) {
+    objects.push(object)
+  }
+  t.same(objects.map(o => o.size), [0, 1024, 2048, 11])
 })

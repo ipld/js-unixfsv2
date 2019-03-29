@@ -48,7 +48,7 @@ let getText = stream => {
 
 test('serve txt file', async t => {
   let {cid, get} = await fullFixture()
-  let fs = unixfs.fs(cid, get)
+  let fs = unixfs.fs(cid.toBaseEncodedString(), get)
   let {url, server} = await getServer(async (req, res) => {
     await fs.serve(req.url, req, res)
   })

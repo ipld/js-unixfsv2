@@ -34,7 +34,6 @@ class FS {
         node = await this._get(node)
         if (cid.codec === 'dag-cbor') node = await deserialize(node)
       }
-      if (Block.isBlock(node) && node.codec === 'dag-cbor') node = await deserialize(node.data)
       return node
     }
     node = await _resolve(node)
@@ -98,10 +97,6 @@ class FS {
         cid = node
         node = await this._get(node)
         if (cid.codec === 'dag-cbor') node = await deserialize(node)
-      }
-      if (Block.isBlock(node)) {
-        cid = node.cid
-        node = await deserialize(node)
       }
       return node
     }
