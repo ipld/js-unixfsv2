@@ -17,8 +17,8 @@ test('dir', async t => {
     counts[block.cid.codec] += 1
   }
   t.same(last.cid.codec, 'dag-cbor')
-  t.same(counts.raw, 4)
-  t.same(counts['dag-cbor'], 7)
+  t.same(counts.raw, 7)
+  t.same(counts['dag-cbor'], 10)
 })
 
 const fullFixture = async () => {
@@ -76,7 +76,7 @@ test('ls', async t => {
   for await (let key of fs.ls('/')) {
     keys.push(key)
   }
-  t.same(keys, [ 'dir2', 'file1', 'file2', 'small.txt' ])
+  t.same(keys, [ 'bits', 'dir2', 'file1', 'file2', 'small.txt', 'index.html' ])
 
   keys = []
   for await (let key of fs.ls('/dir2')) {
@@ -88,5 +88,5 @@ test('ls', async t => {
   for await (let object of fs.ls('/', true)) {
     objects.push(object)
   }
-  t.same(objects.map(o => o.size), [0, 1024, 2048, 11])
+  t.same(objects.map(o => o.size), [ 4, 15, 1024, 2048, 11, 15 ])
 })

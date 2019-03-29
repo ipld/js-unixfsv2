@@ -11,7 +11,7 @@ class FS {
       root = new CID(root)
     }
     this.cid = root
-    if (root.toBaseEncodedString) {
+    if (root && root.toBaseEncodedString) {
       this.rootBuffer = _get(root)
       this.rootBlock = this.rootBuffer.then(buffer => {
         return new Block(buffer, this.cid)
@@ -111,6 +111,7 @@ class FS {
   }
 
   async serve (path, req, res) {
+    if (path === '/') path = '/index.html'
     let cid
     let node
 
@@ -121,15 +122,15 @@ class FS {
         node = _node
         return true
       } catch (e) {
-        if (e.message === 'NotFound') {
+        /* istanbul ignore else */
+        if (e.message === 'NotFound' || e.message.startsWith('Object has no key')) {
           res.statusCode = 404
-          res.end()
         } else {
           res.statusCode = 500
-          res.end()
         }
+        res.end()
+        return false
       }
-      return false
     }
 
     path = 'data/' + path.split('/').filter(x => x).join('/data/')
@@ -138,12 +139,13 @@ class FS {
     if (node.type === 'dir') {
       path += '/data/index.html'
       node = null
+      cid = null
       if (!await tryfind()) return
     }
     res.setHeader('Etag', cid.toBaseEncodedString())
 
     res.setHeader('Content-Length', node.size)
-    let contentType = mime.contentType(path.slice(path.lastIndexOf('.')))
+    let contentType = mime.contentType(mime.lookup(path))
     res.setHeader('Content-Type', contentType || 'application/octet-stream')
 
     res.statusCode = 200

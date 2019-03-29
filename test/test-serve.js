@@ -46,7 +46,7 @@ let getText = stream => {
   })
 }
 
-test('serve txt file', async t => {
+test('file serving', async t => {
   let {cid, get} = await fullFixture()
   let fs = unixfs.fs(cid.toBaseEncodedString(), get)
   let {url, server} = await getServer(async (req, res) => {
@@ -56,5 +56,25 @@ test('serve txt file', async t => {
   t.same(res.headers['content-type'], 'text/plain; charset=utf-8')
   let text = await getText(res)
   t.same(text, 'small text.')
+
+  let get404 = bent(404)
+  res = await get404(url + '/missing')
+  t.same(res.statusCode, 404)
+
+  res = await get404(url + '/dir2')
+  t.same(res.statusCode, 404)
+
+  res = await getreq(url + '/')
+  let html = await getText(res)
+  t.same(html, '<html>\n</html>\n')
+
+  res = await getreq(url + '/dir2/dir3')
+  html = await getText(res)
+  t.same(html, '<html>\n</html>\n')
+
+  res = await getreq(url + '/bits')
+  text = await getText(res)
+  t.same(text, '123\n')
+
   server.close()
 })
