@@ -20,7 +20,7 @@ test('dir', async t => {
   }
   t.same(last.cid.codec, 'dag-cbor')
   t.same(counts.raw, 4)
-  t.same(counts['dag-cbor'], 8)
+  t.same(counts['dag-cbor'], 7)
 })
 
 const fullFixture = async () => {
@@ -39,8 +39,8 @@ const fullFixture = async () => {
 const getfile = (...parts) => fs.readFile(path.join(__dirname, 'fixture', ...parts))
 const join = async iter => {
   let parts = []
-  for await (let block of iter) {
-    parts.push(block.data)
+  for await (let buffer of iter) {
+    parts.push(buffer)
   }
   return Buffer.concat(parts)
 }
@@ -56,19 +56,16 @@ test('read', async t => {
   )
 })
 
-test('block', async t => {
+test('find', async t => {
   let {get, cid} = await fullFixture()
   let fs = unixfs.fs(cid, get)
 
-  let block = await fs.block('file1')
-  let node = await deserialize(block.data)
+  let [, node] = await fs.find('data/file1')
   t.same(node.size, 1024)
 
-  block = await fs.block('file2')
-  node = await deserialize(block.data)
+  ;[, node] = await fs.find('data/file2')
   t.same(node.size, 2048)
 
-  block = await fs.block('dir2/dir3/file3')
-  node = await deserialize(block.data)
+  ;[, node] = await fs.find('data/dir2/data/dir3/data/file3')
   t.same(node.size, 0)
 })

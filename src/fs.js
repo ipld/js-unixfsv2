@@ -23,6 +23,28 @@ class FS {
       throw new Error('Root must be CID.')
     }
   }
+  async resolve (path, node) {
+    /* path resolver, this allows us to read properties
+     * agnostic of block boundaries
+     */
+    path = path.split('/').filter(x => x)
+    let _resolve = async node => {
+      if (CID.isCID(node)) {
+        let cid = node
+        node = await this._get(node)
+        if (cid.codec === 'dag-cbor') node = await deserialize(node)
+      }
+      if (Block.isBlock(node) && node.codec === 'dag-cbor') node = await deserialize(node.data)
+      return node
+    }
+    node = await _resolve(node)
+    while (path.length) {
+      let key = path.shift()
+      if (!node[key]) throw new Error(`Object has no key named "${key}". ${JSON.stringify(node)}`)
+      node = await _resolve(node[key])
+    }
+    return _resolve(node)
+  }
   async _walk (path, type) {
     path = path.split('/').filter(x => x)
     let parent = await this.root
@@ -30,54 +52,79 @@ class FS {
       if (!parent || parent.type !== 'dir') throw new Error('NotFound')
       let key = path.shift()
       if (!parent.data[key]) throw new Error('NotFound')
-      let cid = parent.data[key]
-      parent = await deserialize((await this._get(cid)))
+      parent = await this.resolve(key, parent.data)
     }
     if (!parent || parent.type !== type) throw new Error('NotFound')
     return parent
   }
   ls (path, objects = false) {
-    let self = this
-    return (async function * () {
+    let gen = async function * ls (self, path, objects) {
       let dir = await self._walk(path, 'dir')
       for (let key of Object.keys(dir.data)) {
         if (objects) {
-          let block = await self._get(dir.data[key])
-          yield deserialize(block)
+          let file = await self.resolve(key, dir.data)
+          yield file
         } else {
           yield key
         }
       }
-    })()
+    }
+    return gen(this, path, objects)
   }
   read (path) {
-    let self = this
-    return (async function * () {
+    let gen = async function * read (self, path) {
       let f = await self._walk(path, 'file')
-      for (let [, link] of f.data) {
-        let buffer = await self._get(link)
-        yield new Block(buffer, link)
-      }
-    })()
+      yield * self._reader(f)
+    }
+    return gen(this, path)
   }
-  async block (path) {
+  _reader (f) {
+    let gen = async function * _reader (self, f) {
+      for (let [, link] of f.data) {
+        if (Buffer.isBuffer(link)) yield link
+        else if (link.codec === 'raw') yield self.resolve('', link)
+        // TODO: Handle nested links
+        else throw new Error('Not Implemented')
+      }
+    }
+    return gen(this, f)
+  }
+  async find (path) {
+    /* returns the value for the given path and the cid of its block */
     path = path.split('/').filter(x => x)
-    let block = await this.rootBlock
+    let cid
+    let _resolve = async node => {
+      if (CID.isCID(node)) {
+        cid = node
+        node = await this._get(node)
+        if (cid.codec === 'dag-cbor') node = await deserialize(node)
+      }
+      if (Block.isBlock(node)) {
+        cid = node.cid
+        node = await deserialize(node)
+      }
+      return node
+    }
+    let node = await _resolve(this.root)
     while (path.length) {
       let key = path.shift()
-      let node = await deserialize(block.data)
-      if (!node.data[key]) throw new Error('NotFound')
-      let cid = node.data[key]
-      block = new Block(await this._get(cid), cid)
+      if (!node[key]) throw new Error(`Object has no key named "${key}". ${JSON.stringify(node)}`)
+      node = await _resolve(node[key])
     }
-    return block
+    node = await _resolve(node)
+    return [cid, node]
   }
-  async serve (path, req, res) {
-    let block
 
-    let tryblock = async () => {
+  async serve (path, req, res) {
+    let cid
+    let node
+
+    let tryfind = async () => {
       try {
-        block = await this.block(path)
+        let [_cid, _node] = await this.find(path)
+        cid = _cid
+        node = _node
+        return true
       } catch (e) {
         if (e.message === 'NotFound') {
           res.statusCode = 404
@@ -87,30 +134,25 @@ class FS {
           res.end()
         }
       }
+      return false
     }
 
-    await tryblock()
-    if (!block) return
-    let node = await deserialize(block.data)
+    path = 'data/' + path.split('/').filter(x => x).join('/data/')
+    if (!await tryfind()) return
+
     if (node.type === 'dir') {
-      if (!path.endsWith('/')) path += '/'
-      path += 'index.html'
-      block = null
-      await tryblock()
-      if (!block) return
-      node = await deserialize(block.data)
+      path += '/data/index.html'
+      node = null
+      if (!await tryfind()) return
     }
-
-    res.setHeader('Etag', block.cid.toBaseEncodedString())
+    res.setHeader('Etag', cid.toBaseEncodedString())
 
     res.setHeader('Content-Length', node.size)
     let contentType = mime.contentType(path.slice(path.lastIndexOf('.')))
     res.setHeader('Content-Type', contentType || 'application/octet-stream')
 
     res.statusCode = 200
-    for (let [, link] of node.data) {
-      // TODO: validate the length matches metadata
-      let buffer = await this._get(link)
+    for await (let buffer of this._reader(node)) {
       res.write(buffer)
     }
     res.end()
