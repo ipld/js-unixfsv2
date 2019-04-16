@@ -1,53 +1,30 @@
-const streamChunker = require('stream-chunker')
-const fs = require('fs')
-const {PassThrough} = require('stream')
-const Block = require('ipfs-block')
-const CID = require('cids')
-const multihashes = require('multihashes')
-const crypto = require('crypto')
 const path = require('path')
+const fs = require('fs')
+const streamChunker = require('stream-chunker')
+const { PassThrough } = require('stream')
+const { Block } = require('@ipld/stack')
+const mkfile = require('./mkfile')
 
 const {stat, readdir} = fs.promises
 
-const {serialize, deserialize} = require('./cbor')
-
-const sha2 = b => crypto.createHash('sha256').update(b).digest()
-
-const mkblock = (buffer, type) => {
-  let hash = multihashes.encode(sha2(buffer), 'sha2-256')
-  let cid = new CID(1, type, hash)
-  return new Block(buffer, cid)
-}
-
-const mkcbor = async obj => {
-  return mkblock(await serialize(obj), 'dag-cbor')
-}
-
 const onemeg = 1000000
 
-const rawfile = reader => {
-  return (async function * () {
-    let parts = []
-    let size = 0
-
-    for await (let chunk of reader) {
-      let block = mkblock(chunk, 'raw')
-      parts.push([[size, chunk.length], block.cid])
-      yield block
-      size += chunk.length
-    }
-    let f = {
-      size,
-      type: 'file',
-      data: parts
-    }
-    yield await mkcbor(f)
-  })()
+const last = async iter => {
+  let _last
+  for await (let block of iter) {
+    _last = block
+  }
+  return _last
 }
 
-const file = (path, chunker) => {
+const file = (path, chunker, inline = false, codec = 'dag-cbor') => {
   let reader = chunker(path)
-  return rawfile(reader)
+  if (inline) {
+    let block = last(mkfile(reader, inline, codec))
+    return block
+  } else {
+    return mkfile(reader, inline, codec)
+  }
 }
 
 const fixedChunker = (chunkSize = onemeg) => {
@@ -59,37 +36,35 @@ const fixedChunker = (chunkSize = onemeg) => {
   }
 }
 
-const dir = (_path, recursive = true, chunker = fixedChunker()) => {
-  return (async function * () {
-    let files = await readdir(_path)
-    let size = 0
-    let data = {}
-    for (let name of files) {
-      let fullpath = path.join(_path, name)
-      let _stat = await stat(fullpath)
+const dir = async function * dir (_path, recursive = true, chunker = fixedChunker()) {
+  let files = await readdir(_path)
+  let size = 0
+  let data = {}
+  for (let name of files) {
+    let fullpath = path.join(_path, name)
+    let _stat = await stat(fullpath)
 
-      let reader
-      if (_stat.isDirectory() && recursive) {
-        reader = dir(fullpath, true, chunker)
-      } else {
-        reader = file(fullpath, chunker)
-      }
-
-      let last
-      for await (let block of reader) {
-        yield block
-        last = block
-      }
-
-      data[name] = last.cid
-      size += (await deserialize(last.data)).size
+    let reader
+    if (_stat.isDirectory() && recursive) {
+      reader = dir(fullpath, true, chunker)
+    } else {
+      reader = file(fullpath, chunker)
     }
-    yield await mkcbor({size, data, type: 'dir'})
-  })()
+
+    let last
+    for await (let block of reader) {
+      yield block
+      last = block
+    }
+
+    data[name] = await last.cid()
+    size += (await last.decode()).size
+  }
+  yield Block.encoder({size, data, type: 'dir'}, 'dag-cbor')
 }
 
 exports.file = file
 exports.dir = dir
 exports.fs = require('./fs')
 exports.fixedChunker = fixedChunker
-exports.rawfile = rawfile
+exports.mkfile = mkfile

@@ -1,5 +1,3 @@
-const cbor = require('ipld-dag-cbor')
-const util = require('util')
 const {test} = require('tap')
 const unixfs = require('../src/index')
 const path = require('path')
@@ -10,13 +8,13 @@ const fixture = path.join(__dirname, 'fixture')
 const chunker = unixfs.fixedChunker(1024)
 
 test('dir', async t => {
-  let last
+  let cid
   let counts = {'dag-cbor': 0, 'raw': 0}
   for await (let block of unixfs.dir(fixture, true, chunker)) {
-    last = block
-    counts[block.cid.codec] += 1
+    cid = await block.cid()
+    counts[cid.codec] += 1
   }
-  t.same(last.cid.codec, 'dag-cbor')
+  t.same(cid.codec, 'dag-cbor')
   t.same(counts.raw, 7)
   t.same(counts['dag-cbor'], 10)
 })
@@ -26,11 +24,12 @@ const fullFixture = async () => {
   let last
   for await (let block of unixfs.dir(fixture, true, chunker)) {
     last = block
-    map.set(block.cid.toBaseEncodedString(), block.data)
+    let cid = await block.cid()
+    map.set(cid.toBaseEncodedString(), block)
   }
   return {
     get: async cid => map.get(cid.toBaseEncodedString()),
-    cid: last.cid
+    cid: await last.cid()
   }
 }
 
@@ -52,20 +51,6 @@ test('read', async t => {
     await join(fs.read('dir2/dir3/file3')),
     await getfile('dir2', 'dir3', 'file3')
   )
-})
-
-test('find', async t => {
-  let {get, cid} = await fullFixture()
-  let fs = unixfs.fs(cid, get)
-
-  let [, node] = await fs.find('data/file1')
-  t.same(node.size, 1024)
-
-  ;[, node] = await fs.find('data/file2')
-  t.same(node.size, 2048)
-
-  ;[, node] = await fs.find('data/dir2/data/dir3/data/file3')
-  t.same(node.size, 0)
 })
 
 test('ls', async t => {

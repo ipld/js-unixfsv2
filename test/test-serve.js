@@ -12,14 +12,14 @@ const chunker = unixfs.fixedChunker(1024)
 
 const fullFixture = async () => {
   let map = new Map()
-  let last
+  let cid
   for await (let block of unixfs.dir(fixture, true, chunker)) {
-    last = block
-    map.set(block.cid.toBaseEncodedString(), block.data)
+    cid = await block.cid()
+    map.set(cid.toBaseEncodedString(), block)
   }
   return {
     get: async cid => map.get(cid.toBaseEncodedString()),
-    cid: last.cid
+    cid
   }
 }
 

@@ -7,25 +7,25 @@ const fixture = path.join(__dirname, 'fixture')
 const chunker = unixfs.fixedChunker(1024)
 
 test('dir', async t => {
-  let last
+  let cid
   let counts = {'dag-cbor': 0, 'raw': 0}
   for await (let block of unixfs.dir(fixture, true, chunker)) {
-    last = block
-    counts[block.cid.codec] += 1
+    cid = await block.cid()
+    counts[cid.codec] += 1
   }
-  t.same(last.cid.codec, 'dag-cbor')
+  t.same(cid.codec, 'dag-cbor')
 })
 
 const fullFixture = async () => {
   let map = new Map()
-  let last
+  let cid
   for await (let block of unixfs.dir(fixture, true, chunker)) {
-    last = block
-    map.set(block.cid.toBaseEncodedString(), block.data)
+    cid = await block.cid()
+    map.set(cid.toBaseEncodedString(), block)
   }
   return {
     get: async cid => map.get(cid.toBaseEncodedString()),
-    cid: last.cid
+    cid: cid
   }
 }
 
@@ -42,41 +42,7 @@ test('property missing', async t => {
   let {get, cid} = await fullFixture()
   let fs = unixfs.fs(cid, get)
   try {
-    await fs.resolve('/missing', await fs.root)
-  } catch (e) {
-    t.ok(e.message.startsWith('Object has no key named "missing"'))
-  }
-})
-
-test('walk notfound', async t => {
-  let {get, cid} = await fullFixture()
-  let fs = unixfs.fs(cid, get)
-
-  try {
-    await fs._walk('/missing', 'file')
-  } catch (e) {
-    t.same(e.message, 'NotFound')
-  }
-
-  try {
-    await fs._walk('/small.txt/missing', 'file')
-  } catch (e) {
-    t.same(e.message, 'NotFound')
-  }
-
-  try {
-    await fs._walk('/small.txt', 'dir')
-  } catch (e) {
-    t.same(e.message, 'NotFound')
-  }
-})
-
-test('find notfound', async t => {
-  let {get, cid} = await fullFixture()
-  let fs = unixfs.fs(cid, get)
-
-  try {
-    await fs.find('/missing', await fs.root)
+    await fs.resolve('/missing', fs.cid)
   } catch (e) {
     t.ok(e.message.startsWith('Object has no key named "missing"'))
   }

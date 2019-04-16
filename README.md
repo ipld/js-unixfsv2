@@ -60,7 +60,7 @@ for await (let block of fs.read('/sub/dir/file.txt')) {
 ```
 
 `cid` is an instance of `CID`. `get` is an async functions that takes
-a `CID` instance and returns a Buffer.
+a `CID` instance and returns a `Block` instance from `@ipld/block`.
 
 #### fs.ls(path-to-dir[, objects = false])
 
