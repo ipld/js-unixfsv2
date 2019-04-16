@@ -1,4 +1,6 @@
-# unixfs-v2 DRAFT implementation
+# unixfs-v2 
+
+This library is a full implementation of [`unixfs-v2`](https://github.com/ipfs/unixfs-v2) for JavaScript.
 
 Usage:
 
