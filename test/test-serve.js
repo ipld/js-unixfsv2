@@ -1,4 +1,4 @@
-const {test} = require('tap')
+const { test } = require('tap')
 const unixfs = require('../src/index')
 const path = require('path')
 const bent = require('bent')
@@ -30,7 +30,7 @@ let getServer = handler => {
   return new Promise((resolve, reject) => {
     let server = http.createServer(handler)
     server.listen(PORT, () => {
-      resolve({url: `http://localhost:${PORT}`, server})
+      resolve({ url: `http://localhost:${PORT}`, server })
     })
   })
 }
@@ -47,9 +47,9 @@ let getText = stream => {
 }
 
 test('file serving', async t => {
-  let {cid, get} = await fullFixture()
+  let { cid, get } = await fullFixture()
   let fs = unixfs.fs(cid.toBaseEncodedString(), get)
-  let {url, server} = await getServer(async (req, res) => {
+  let { url, server } = await getServer(async (req, res) => {
     await fs.serve(req.url, req, res)
   })
   let res = await getreq(url + '/small.txt')

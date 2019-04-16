@@ -1,4 +1,4 @@
-const {test} = require('tap')
+const { test } = require('tap')
 const unixfs = require('../src/index')
 const path = require('path')
 const fs = require('fs').promises
@@ -9,7 +9,7 @@ const chunker = unixfs.fixedChunker(1024)
 
 test('dir', async t => {
   let cid
-  let counts = {'dag-cbor': 0, 'raw': 0}
+  let counts = { 'dag-cbor': 0, 'raw': 0 }
   for await (let block of unixfs.dir(fixture, true, chunker)) {
     cid = await block.cid()
     counts[cid.codec] += 1
@@ -43,7 +43,7 @@ const join = async iter => {
 }
 
 test('read', async t => {
-  let {get, cid} = await fullFixture()
+  let { get, cid } = await fullFixture()
   let fs = unixfs.fs(cid, get)
   t.same(await join(fs.read('file1')), await getfile('file1'))
   t.same(await join(fs.read('file2')), await getfile('file2'))
@@ -54,7 +54,7 @@ test('read', async t => {
 })
 
 test('ls', async t => {
-  let {get, cid} = await fullFixture()
+  let { get, cid } = await fullFixture()
   let fs = unixfs.fs(cid, get)
 
   let keys = []

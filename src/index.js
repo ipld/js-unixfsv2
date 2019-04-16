@@ -5,7 +5,7 @@ const { PassThrough } = require('stream')
 const { Block } = require('@ipld/stack')
 const mkfile = require('./mkfile')
 
-const {stat, readdir} = fs.promises
+const { stat, readdir } = fs.promises
 
 const onemeg = 1000000
 
@@ -30,8 +30,8 @@ const file = (path, chunker, inline = false, codec = 'dag-cbor') => {
 const fixedChunker = (chunkSize = onemeg) => {
   return path => {
     let stream = fs.createReadStream(path)
-    let chunker = stream.pipe(streamChunker(chunkSize, {flush: true}))
-    let reader = chunker.pipe(new PassThrough({objectMode: true}))
+    let chunker = stream.pipe(streamChunker(chunkSize, { flush: true }))
+    let reader = chunker.pipe(new PassThrough({ objectMode: true }))
     return reader
   }
 }
@@ -60,7 +60,7 @@ const dir = async function * dir (_path, recursive = true, chunker = fixedChunke
     data[name] = await last.cid()
     size += (await last.decode()).size
   }
-  yield Block.encoder({size, data, type: 'dir'}, 'dag-cbor')
+  yield Block.encoder({ size, data, type: 'dir' }, 'dag-cbor')
 }
 
 exports.file = file

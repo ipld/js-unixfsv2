@@ -1,4 +1,4 @@
-const {test} = require('tap')
+const { test } = require('tap')
 const unixfs = require('../src/index')
 const path = require('path')
 
@@ -8,7 +8,7 @@ const chunker = unixfs.fixedChunker(1024)
 
 test('dir', async t => {
   let cid
-  let counts = {'dag-cbor': 0, 'raw': 0}
+  let counts = { 'dag-cbor': 0, 'raw': 0 }
   for await (let block of unixfs.dir(fixture, true, chunker)) {
     cid = await block.cid()
     counts[cid.codec] += 1
@@ -30,7 +30,7 @@ const fullFixture = async () => {
 }
 
 test('invalid cid', async t => {
-  let {get} = await fullFixture()
+  let { get } = await fullFixture()
   try {
     unixfs.fs(null, get)
   } catch (e) {
@@ -39,7 +39,7 @@ test('invalid cid', async t => {
 })
 
 test('property missing', async t => {
-  let {get, cid} = await fullFixture()
+  let { get, cid } = await fullFixture()
   let fs = unixfs.fs(cid, get)
   try {
     await fs.resolve('/missing', fs.cid)
