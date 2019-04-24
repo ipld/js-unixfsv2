@@ -1,5 +1,6 @@
 const { test } = require('tap')
 const unixfs = require('../src/index')
+const serve = require('../src/serve')
 const path = require('path')
 const bent = require('bent')
 const http = require('http')
@@ -50,7 +51,7 @@ test('file serving', async t => {
   let { cid, get } = await fullFixture()
   let fs = unixfs.fs(cid.toBaseEncodedString(), get)
   let { url, server } = await getServer(async (req, res) => {
-    await fs.serve(req.url, req, res)
+    await serve(fs, req.url, req, res)
   })
   let res = await getreq(url + '/small.txt')
   t.same(res.headers['content-type'], 'text/plain; charset=utf-8')
