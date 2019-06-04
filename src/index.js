@@ -2,41 +2,20 @@ const path = require('path')
 const fs = require('fs')
 const streamChunker = require('stream-chunker')
 const { PassThrough } = require('stream')
-const { Block } = require('@ipld/stack')
+const Block = require('@ipld/block')
 const mkfile = require('./mkfile')
+const merge = require('lodash.merge')
+const defaultConfig = require('./defaults.json')
 
-const { stat, readdir } = fs.promises
+const { stat, readdir, readFile } = fs.promises
 
-const onemeg = 1000000
-
-const last = async iter => {
-  let _last
-  for await (let block of iter) {
-    _last = block
-  }
-  return _last
+const file = (path, inline, config) => {
+  let data = fs.readFile(path) 
+  return mkfile(data, inline, config)
 }
 
-const file = (path, chunker, inline = false, codec = 'dag-cbor') => {
-  let reader = chunker(path)
-  if (inline) {
-    let block = last(mkfile(reader, inline, codec))
-    return block
-  } else {
-    return mkfile(reader, inline, codec)
-  }
-}
-
-const fixedChunker = (chunkSize = onemeg) => {
-  return path => {
-    let stream = fs.createReadStream(path)
-    let chunker = stream.pipe(streamChunker(chunkSize, { flush: true }))
-    let reader = chunker.pipe(new PassThrough({ objectMode: true }))
-    return reader
-  }
-}
-
-const dir = async function * dir (_path, recursive = true, chunker = fixedChunker()) {
+const dir = async function * dir (_path, recursive = true, config = {}) {
+  let cfg = merge({}, defaultConfig, config)
   let files = await readdir(_path)
   let size = 0
   let data = {}
@@ -46,9 +25,10 @@ const dir = async function * dir (_path, recursive = true, chunker = fixedChunke
 
     let reader
     if (_stat.isDirectory() && recursive) {
-      reader = dir(fullpath, true, chunker)
+      reader = dir(fullpath, true, cfg)
     } else {
-      reader = file(fullpath, chunker)
+      let inline = (config.inline.minSize > _stat.size)
+      reader = file(fullpath, inline, cfg)
     }
 
     let last
@@ -58,13 +38,13 @@ const dir = async function * dir (_path, recursive = true, chunker = fixedChunke
     }
 
     data[name] = await last.cid()
-    size += (await last.decode()).size
+    size += _stat.size
   }
-  yield Block.encoder({ size, data, type: 'dir' }, 'dag-cbor')
+  let type = 'IPFS/Experimental/Dir/0'
+  yield Block.encoder({ size, data, type }, config.codec)
 }
 
 exports.file = file
 exports.dir = dir
 exports.fs = require('./fs')
-exports.fixedChunker = fixedChunker
 exports.mkfile = mkfile

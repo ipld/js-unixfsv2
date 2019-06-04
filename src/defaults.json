@@ -1,0 +1,8 @@
+{
+  "codec": "dag-cbor",
+  "chunker": {
+    "fixed": {
+      "size": 1048576
+    }
+  }
+}

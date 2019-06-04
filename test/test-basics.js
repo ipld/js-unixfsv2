@@ -5,8 +5,6 @@ const fs = require('fs').promises
 
 const fixture = path.join(__dirname, 'fixture')
 
-const chunker = unixfs.fixedChunker(1024)
-
 test('dir', async t => {
   let cid
   let counts = { 'dag-cbor': 0, 'raw': 0 }
