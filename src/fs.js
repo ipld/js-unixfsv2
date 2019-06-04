@@ -1,6 +1,5 @@
 const CID = require('cids')
-const { pathLevelZero } = require('@ipld/stack')
-const { resolve } = pathLevelZero
+const { resolve } = require('@ipld/path-level-one')
 
 class FS {
   constructor (root, _get) {

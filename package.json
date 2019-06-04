@@ -1,45 +1,38 @@
 {
   "name": "js-unixfsv2-draft",
-  "version": "0.5.1",
-  "description": "",
+  "version": "0.0.0-dev",
+  "description": "UnixFSv2 Implementation",
   "main": "src/index.js",
   "scripts": {
-    "lint": "eslint src/*.js test/*.js",
-    "pretest": "npm run lint",
-    "test": "tap test/test-*.js"
+    "test": "mocha test/*.spec.js"
   },
   "keywords": [],
   "author": "Mikeal Rogers <mikeal.rogers@gmail.com> (http://www.mikealrogers.com)",
   "license": "Apache-2.0",
   "dependencies": {
-    "@ipld/stack": "^1.2.1",
-    "cids": "^0.6.0",
+    "@ipld/block": "^2.0.3",
+    "@ipld/iq": "0.0.2",
+    "@ipld/path-level-one": "^1.0.1",
+    "cids": "^0.7.1",
     "lodash.merge": "^4.6.1",
-    "mime-types": "^2.1.22",
+    "mime-types": "^2.1.24",
     "stream-chunker": "^1.2.8"
   },
   "devDependencies": {
-    "babel-eslint": "^10.0.1",
-    "bent": "^1.4.0",
-    "eslint": "^5.16.0",
-    "eslint-config-standard": "^12.0.0",
-    "eslint-config-standard-babel": "0.0.2",
-    "eslint-plugin-babel": "^5.3.0",
-    "eslint-plugin-import": "^2.17.1",
-    "eslint-plugin-node": "^8.0.1",
-    "eslint-plugin-promise": "^4.1.1",
-    "eslint-plugin-standard": "^4.0.0",
-    "tap": "^12.6.1"
+    "aegir": "^19.0.3",
+    "mocha": "^6.1.4",
+    "standard": "^12.0.1",
+    "tsame": "^2.0.1"
   },
-  "eslintConfig": {
-    "parser": "babel-eslint",
-    "extends": [
-      "standard",
-      "standard-babel"
-    ],
-    "plugins": [
-      "babel",
-      "standard"
-    ]
-  }
+  "directories": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ipld/js-unixfsv2.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ipld/js-unixfsv2/issues"
+  },
+  "homepage": "https://github.com/ipld/js-unixfsv2#readme"
 }

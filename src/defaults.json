@@ -4,5 +4,8 @@
     "fixed": {
       "size": 1048576
     }
+  },
+  "inline": {
+    "minSize": 1048576
   }
 }

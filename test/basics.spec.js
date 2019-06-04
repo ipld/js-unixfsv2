@@ -1,26 +1,33 @@
-const { test } = require('tap')
+/* globals it */
+const Block = require('@ipld/block')
+const assert = require('assert')
 const unixfs = require('../src/index')
 const path = require('path')
 const fs = require('fs').promises
+const tsame = require('tsame')
+const { system, Lookup, read } = require('../')
+
+const same = (...args) => assert.ok(tsame(...args))
+const test = it
 
 const fixture = path.join(__dirname, 'fixture')
 
-test('dir', async t => {
+test('dir', async () => {
   let cid
   let counts = { 'dag-cbor': 0, 'raw': 0 }
-  for await (let block of unixfs.dir(fixture, true, chunker)) {
+  for await (let block of unixfs.dir(fixture, true)) {
     cid = await block.cid()
     counts[cid.codec] += 1
   }
-  t.same(cid.codec, 'dag-cbor')
-  t.same(counts.raw, 7)
-  t.same(counts['dag-cbor'], 10)
+  same(cid.codec, 'dag-cbor')
+  same(counts.raw, 0) 
+  same(counts['dag-cbor'], 1)
 })
 
 const fullFixture = async () => {
   let map = new Map()
   let last
-  for await (let block of unixfs.dir(fixture, true, chunker)) {
+  for await (let block of unixfs.dir(fixture, true)) {
     last = block
     let cid = await block.cid()
     map.set(cid.toBaseEncodedString(), block)
@@ -40,18 +47,18 @@ const join = async iter => {
   return Buffer.concat(parts)
 }
 
-test('read', async t => {
+test('read', async () => {
   let { get, cid } = await fullFixture()
   let fs = unixfs.fs(cid, get)
-  t.same(await join(fs.read('file1')), await getfile('file1'))
-  t.same(await join(fs.read('file2')), await getfile('file2'))
-  t.same(
+  same(await join(fs.read('file1')), await getfile('file1'))
+  same(await join(fs.read('file2')), await getfile('file2'))
+  same(
     await join(fs.read('dir2/dir3/file3')),
     await getfile('dir2', 'dir3', 'file3')
   )
 })
 
-test('ls', async t => {
+test('ls', async () => {
   let { get, cid } = await fullFixture()
   let fs = unixfs.fs(cid, get)
 
@@ -59,17 +66,17 @@ test('ls', async t => {
   for await (let key of fs.ls('/')) {
     keys.push(key)
   }
-  t.same(keys, [ 'bits', 'dir2', 'file1', 'file2', 'small.txt', 'index.html' ])
+  same(keys, [ 'bits', 'dir2', 'file1', 'file2', 'small.txt', 'index.html' ])
 
   keys = []
   for await (let key of fs.ls('/dir2')) {
     keys.push(key)
   }
-  t.same(keys, [ 'dir3' ])
+  same(keys, [ 'dir3' ])
 
   let objects = []
   for await (let object of fs.ls('/', true)) {
     objects.push(object)
   }
-  t.same(objects.map(o => o.size), [ 4, 15, 1024, 2048, 11, 15 ])
+  same(objects.map(o => o.size), [ 4, 15, 1024, 2048, 11, 15 ])
 })
