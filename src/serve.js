@@ -10,7 +10,7 @@ module.exports = async (fs, path, req, res) => {
   let trypath = async (path, block) => {
     let ret
     try {
-      ret = await find(path, block, fs._get)
+      ret = await find(path, block, fs.get(path))
     } catch (e) {
       /* istanbul ignore else */
       if (e.message === 'NotFound' || e.message.startsWith('Object has no')) {

@@ -1,5 +1,28 @@
 const CID = require('cids')
-const { resolve } = require('@ipld/path-level-one')
+const iq = require('@ipld/iq')
+
+const fullPath = path => {
+  path = path.split('/').filter(x => x)
+  if (path.length) path = 'data/' + path.join('/data/')
+  else path = ''
+  return path
+}
+
+class File {
+  constructor (root, path, q) {
+    this.q = q
+    this._q = q(fullPath(path))
+  }
+  exists () {
+    return this._q.exists()
+  }
+  ls () {
+   this._q.q('data').keys()
+  }
+  read (start, end) {
+    return this._q.q('data').read(start, end)
+  }
+}
 
 class FS {
   constructor (root, _get) {
@@ -7,56 +30,20 @@ class FS {
     if (typeof root === 'string') {
       root = new CID(root)
     }
-    this.cid = root
-    if (root && root.toBaseEncodedString) {
-      this.rootBlock = _get(root)
-      this.root = this.rootBlock.then(block => {
-        if (block.decode) return block.decode()
-        throw new Error('Could not lookup block')
-      })
-    } else {
-      throw new Error('Root must be CID.')
-    }
+    this.root = root
+    this._get = _get
+    this.q = iq.defaults({get: _get})
   }
   resolve (value) {
     if (CID.isCID(value)) return this._get(value)
     else return value
   }
-  ls (path, objects = false) {
-    let gen = async function * ls (self, path, objects) {
-      path = path.split('/').filter(x => x)
-      if (path.length) path = 'data/' + path.join('/data/') + '/data'
-      else path = 'data'
-      let dir = await resolve(path, await self.rootBlock, self._get)
-      for (let key of Object.keys(dir)) {
-        if (objects) {
-          let file = (await self.resolve(dir[key])).decode()
-          yield file
-        } else {
-          yield key
-        }
-      }
-    }
-    return gen(this, path, objects)
+  get (path) {
+    return new File(this.root, path, this.q)
   }
-  read (path) {
-    let gen = async function * read (self, path) {
-      path = 'data/' + path.split('/').filter(x => x).join('/data/') + '/data'
-      let f = await resolve(path, await self.rootBlock, self._get)
-      yield * self._reader(f)
-    }
-    return gen(this, path)
-  }
-  _reader (f) {
-    let gen = async function * _reader (self, f) {
-      for (let [, link] of f) {
-        if (Buffer.isBuffer(link)) yield link
-        else if (link.codec === 'raw') yield (await self.resolve(link)).decode()
-        // TODO: Handle nested links
-        else throw new Error('Not Implemented')
-      }
-    }
-    return gen(this, f)
+  ls (path) {
+    let f = new File(this.root, path, this.q)
+    return f.ls()
   }
 }
 
