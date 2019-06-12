@@ -11,10 +11,11 @@ const { stat, readdir, readFile } = fs.promises
 
 const cfg = config => merge({}, defaultConfig, config)
 
-const file = async (path, inline, config) => {
+const file = async (_path, inline, config) => {
   config = cfg(config)
-  let data = await readFile(path) 
-  return mkfile(data, inline, config)
+  let data = await readFile(_path) 
+  let name = path.basename(_path)
+  return mkfile(data, name, inline, config)
 }
 
 const dir = async function * dir (_path, recursive = true, config = {}) {
@@ -47,10 +48,16 @@ const dir = async function * dir (_path, recursive = true, config = {}) {
   
   if (size > config.inline.minSize) {
     // pre-compute cids in parellel
+    for (let f of files) {
+      for (let b of f.blocks) {
+        console.error(b.source() || b.decode())
+        await b.cid()
+      }
+    }
     await Promise.all(files.map(f => f.blocks[f.blocks.length-1].cid()))
     for (let {name, blocks} of files) {
       let last
-      for (let block in blocks) {
+      for (let block of blocks) {
         yield block
         last = block
       }
