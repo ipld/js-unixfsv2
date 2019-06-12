@@ -1,11 +1,9 @@
 /* globals it */
-const Block = require('@ipld/block')
 const assert = require('assert')
-const unixfs = require('../src/index')
+const unixfs = require('../')
 const path = require('path')
 const fs = require('fs').promises
 const tsame = require('tsame')
-const { system, Lookup, read } = require('../')
 
 const same = (...args) => assert.ok(tsame(...args))
 const test = it
@@ -20,7 +18,7 @@ test('dir', async () => {
     counts[cid.codec] += 1
   }
   same(cid.codec, 'dag-cbor')
-  same(counts.raw, 0) 
+  same(counts.raw, 0)
   same(counts['dag-cbor'], 1)
 })
 
@@ -39,13 +37,6 @@ const fullFixture = async () => {
 }
 
 const getfile = (...parts) => fs.readFile(path.join(__dirname, 'fixture', ...parts))
-const join = async iter => {
-  let parts = []
-  for await (let buffer of iter) {
-    parts.push(buffer)
-  }
-  return Buffer.concat(parts)
-}
 
 test('read', async () => {
   let { get, cid } = await fullFixture()

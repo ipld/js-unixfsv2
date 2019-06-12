@@ -1,24 +1,28 @@
 #!/usr/bin/env node
 const defaults = require('./src/defaults')
 const { dir, file } = require('./')
-const fs = require('./src/fs')
+// const fs = require('./src/fs')
 const FS = require('fs').promises
 const printify = require('@ipld/printify')
+const merge = require('lodash.merge')
 
 const log = (msg, args) => {
   if (!args.silent) console.log(msg)
 }
 
+const createConfig = args => merge({}, defaults, args)
+
 const encode = async args => {
+  let config = createConfig(args)
   let iter
   for (let _file of args.files) {
     let _stat = await FS.stat(_file)
     if (_stat.isDirectory()) {
       log(`Encoding Directory: ${_file}`, args)
-      iter = dir(_file)
+      iter = dir(_file, true, config)
     } else {
       log(`Encoding File: ${_file}`, args)
-      iter = file(_file)
+      iter = file(_file, args.inline || false, config)
     }
 
     let last
@@ -34,9 +38,7 @@ const encode = async args => {
   }
 }
 
-
-/* eslint ignore-next */
-require('yargs')
+require('yargs') // eslint-disable-line
   .command({
     command: 'encode [files..]',
     aliases: ['e'],
@@ -44,7 +46,7 @@ require('yargs')
     handler: encode,
     builder: yargs => {
       yargs.positional('files', {
-        desc: 'Files to encode',
+        desc: 'Files to encode'
       })
     }
   })

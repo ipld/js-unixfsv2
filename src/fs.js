@@ -17,7 +17,7 @@ class File {
     return this._q.exists()
   }
   ls () {
-   this._q.q('data').keys()
+    this._q.q('data').keys()
   }
   read (start, end) {
     return this._q.q('data').read(start, end)
@@ -32,7 +32,7 @@ class FS {
     }
     this.root = root
     this._get = _get
-    this.q = iq.defaults({get: _get})
+    this.q = iq.defaults({ get: _get })
   }
   resolve (value) {
     if (CID.isCID(value)) return this._get(value)

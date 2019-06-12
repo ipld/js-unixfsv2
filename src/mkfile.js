@@ -1,12 +1,11 @@
 const Block = require('@ipld/block')
 const iq = require('@ipld/iq')
-const FixedChunker = require('@ipld/generics/src/bytes/fixed-chunker') 
+const FixedChunker = require('@ipld/generics/src/bytes/fixed-chunker')
 const defaultConfig = require('./defaults.json')
 const merge = require('lodash.merge')
 
 const mkfile = async function * mkfile (source, name, inline = false, config = {}) {
   let cfg = merge({}, defaultConfig, config)
-  let parts = []
 
   if (Buffer.isBuffer(source)) {
     // noop
@@ -15,7 +14,7 @@ const mkfile = async function * mkfile (source, name, inline = false, config = {
   }
 
   let data
-  let size 
+  let size
   if (!inline) {
     let builder = FixedChunker.create(source, cfg.chunker.fixed)
     let last
@@ -34,7 +33,7 @@ const mkfile = async function * mkfile (source, name, inline = false, config = {
         return null
       }
     })(data)
-    
+
     q.config.lookup.register(FixedChunker)
     size = await q.length()
   } else {
@@ -48,7 +47,7 @@ const mkfile = async function * mkfile (source, name, inline = false, config = {
     size,
     data
   }
-  
+
   yield Block.encoder(f, cfg.codec)
 }
 

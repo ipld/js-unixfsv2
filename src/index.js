@@ -1,7 +1,5 @@
 const path = require('path')
 const fs = require('fs')
-const streamChunker = require('stream-chunker')
-const { PassThrough } = require('stream')
 const Block = require('@ipld/block')
 const mkfile = require('./mkfile')
 const merge = require('lodash.merge')
@@ -13,7 +11,7 @@ const cfg = config => merge({}, defaultConfig, config)
 
 const file = async (_path, inline, config) => {
   config = cfg(config)
-  let data = await readFile(_path) 
+  let data = await readFile(_path)
   let name = path.basename(_path)
   return mkfile(data, name, inline, config)
 }
@@ -38,34 +36,26 @@ const dir = async function * dir (_path, recursive = true, config = {}) {
       reader = await file(fullpath, inline, config)
     }
 
-    let last
     for await (let block of reader) {
       blocks.push(block)
-      last = block
     }
-    return {name, blocks}
+    return { name, blocks }
   }).map(f => f()))
-  
+
   if (size > config.inline.minSize) {
     // pre-compute cids in parellel
-    for (let f of files) {
-      for (let b of f.blocks) {
-        console.error(b.source() || b.decode())
-        await b.cid()
-      }
-    }
-    await Promise.all(files.map(f => f.blocks[f.blocks.length-1].cid()))
-    for (let {name, blocks} of files) {
+    await Promise.all(files.map(f => f.blocks[f.blocks.length - 1].cid()))
+    for (let { name, blocks } of files) {
       let last
       for (let block of blocks) {
         yield block
         last = block
       }
-      // cached cid 
+      // cached cid
       data[name] = await last.cid()
     }
   } else {
-    for (let {name, blocks} of files) {
+    for (let { name, blocks } of files) {
       // if the directory size is below the threshold
       // then all the files were as well
       let [ block ] = blocks
