@@ -11,13 +11,16 @@ const fullPath = path => {
 class File {
   constructor (root, path, q) {
     this.q = q
-    this._q = q(fullPath(path))
+    this._q = q(root, fullPath(path))
   }
   exists () {
     return this._q.exists()
   }
   ls () {
-    this._q.q('data').keys()
+    return this._q.q('data').keys()
+  }
+  lsIterator () {
+    return this._q.q('data').keyIterator()
   }
   read (start, end) {
     return this._q.q('data').read(start, end)
@@ -44,6 +47,10 @@ class FS {
   ls (path) {
     let f = new File(this.root, path, this.q)
     return f.ls()
+  }
+  lsIterator (path) {
+    let f = new File(this.root, path, this.q)
+    return f.lsIterator()
   }
 }
 

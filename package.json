@@ -12,7 +12,7 @@
   "dependencies": {
     "@ipld/block": "^2.0.4",
     "@ipld/generics": "0.0.1",
-    "@ipld/iq": "0.3.0",
+    "@ipld/iq": "0.3.1",
     "@ipld/path-level-one": "^1.0.1",
     "@ipld/printify": "0.0.0",
     "cids": "^0.7.1",

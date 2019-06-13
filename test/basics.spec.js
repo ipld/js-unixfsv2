@@ -41,8 +41,8 @@ const getfile = (...parts) => fs.readFile(path.join(__dirname, 'fixture', ...par
 test('read', async () => {
   let { get, cid } = await fullFixture()
   let fs = unixfs.fs(cid, get)
-  same(fs.get('file1').read(), await getfile('file1'))
-  same(fs.get('file2').read(), await getfile('file2'))
+  same(await fs.get('file1').read(), await getfile('file1'))
+  same(await fs.get('file2').read(), await getfile('file2'))
   same(
     await fs.get('dir2/dir3/file3').read(),
     await getfile('dir2', 'dir3', 'file3')
@@ -53,21 +53,13 @@ test('ls', async () => {
   let { get, cid } = await fullFixture()
   let fs = unixfs.fs(cid, get)
 
-  let keys = []
-  for await (let key of fs.ls('/')) {
-    keys.push(key)
-  }
+  let keys = await fs.ls('/')
   same(keys, [ 'bits', 'dir2', 'file1', 'file2', 'small.txt', 'index.html' ])
 
   keys = []
-  for await (let key of fs.ls('/dir2')) {
+  let iter = fs.lsIterator('/dir2')
+  for await (let key of iter) {
     keys.push(key)
   }
   same(keys, [ 'dir3' ])
-
-  // let objects = []
-  // for await (let object of fs.ls('/', true)) {
-  //   objects.push(object)
-  // }
-  // same(objects.map(o => o.size), [ 4, 15, 1024, 2048, 11, 15 ])
 })
