@@ -37,10 +37,6 @@ class FS {
     this._get = _get
     this.q = iq.defaults({ get: _get })
   }
-  resolve (value) {
-    if (CID.isCID(value)) return this._get(value)
-    else return value
-  }
   get (path) {
     return new File(this.root, path, this.q)
   }
