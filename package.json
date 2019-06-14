@@ -13,12 +13,10 @@
     "@ipld/block": "^2.0.4",
     "@ipld/generics": "0.0.1",
     "@ipld/iq": "0.4.0",
-    "@ipld/path-level-one": "^1.0.1",
     "@ipld/printify": "0.0.0",
     "cids": "^0.7.1",
     "lodash.merge": "^4.6.1",
     "mime-types": "^2.1.24",
-    "stream-chunker": "^1.2.8",
     "yargs": "^13.2.4"
   },
   "devDependencies": {
