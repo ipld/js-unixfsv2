@@ -12,6 +12,8 @@ class File {
   constructor (root, path, q) {
     this.q = q
     this._q = q(root, fullPath(path))
+    this.path = path
+    this.root = root
   }
   exists () {
     return this._q.exists()
@@ -24,6 +26,23 @@ class File {
   }
   read (start, end) {
     return this._q.q('data').read(start, end)
+  }
+  length () {
+    return this._q.q('data').length()
+  }
+  readIterator (start, end) {
+    return this._q.q('data').readIterator(start, end)
+  }
+  async isDirectory () {
+    let type = await this._q.q('type').toString()
+    return type.startsWith('IPFS/Experimental/Dir')
+  }
+  get (path) {
+    if (!this.path.endsWith('/')) path = '/' + path
+    return new File(this.root, this.path + path, this.q)
+  }
+  blocks () {
+    return this._q.blocks()
   }
 }
 

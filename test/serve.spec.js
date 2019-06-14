@@ -1,20 +1,23 @@
-const { test } = require('tap')
-const unixfs = require('../src/index')
-const serve = require('../src/serve')
+/* globals it */
+const assert = require('assert')
+const unixfs = require('../')
 const path = require('path')
+const tsame = require('tsame')
+const serve = require('../src/serve')
 const bent = require('bent')
 const http = require('http')
+
+const same = (...args) => assert.ok(tsame(...args))
+const test = it
 
 const getreq = bent()
 
 const fixture = path.join(__dirname, 'fixture')
 
-const chunker = unixfs.fixedChunker(1024)
-
 const fullFixture = async () => {
   let map = new Map()
   let cid
-  for await (let block of unixfs.dir(fixture, true, chunker)) {
+  for await (let block of unixfs.dir(fixture, true)) {
     cid = await block.cid()
     map.set(cid.toBaseEncodedString(), block)
   }
@@ -47,35 +50,35 @@ let getText = stream => {
   })
 }
 
-test('file serving', async t => {
+test('file serving', async () => {
   let { cid, get } = await fullFixture()
   let fs = unixfs.fs(cid.toBaseEncodedString(), get)
   let { url, server } = await getServer(async (req, res) => {
     await serve(fs, req.url, req, res)
   })
   let res = await getreq(url + '/small.txt')
-  t.same(res.headers['content-type'], 'text/plain; charset=utf-8')
+  same(res.headers['content-type'], 'text/plain; charset=utf-8')
   let text = await getText(res)
-  t.same(text, 'small text.')
+  same(text, 'small text.')
 
   let get404 = bent(404)
   res = await get404(url + '/missing')
-  t.same(res.statusCode, 404)
+  same(res.statusCode, 404)
 
   res = await get404(url + '/dir2')
-  t.same(res.statusCode, 404)
+  same(res.statusCode, 404)
 
   res = await getreq(url + '/')
   let html = await getText(res)
-  t.same(html, '<html>\n</html>\n')
+  same(html, '<html>\n</html>\n')
 
   res = await getreq(url + '/dir2/dir3')
   html = await getText(res)
-  t.same(html, '<html>\n</html>\n')
+  same(html, '<html>\n</html>\n')
 
   res = await getreq(url + '/bits')
   text = await getText(res)
-  t.same(text, '123\n')
+  same(text, '123\n')
 
   server.close()
 })
