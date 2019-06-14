@@ -10,7 +10,13 @@ const log = (msg, args) => {
   if (!args.silent) console.log(msg)
 }
 
-const createConfig = args => merge({}, defaults, args)
+const createConfig = args => {
+  if (!args.inline) args.inline = {}
+  if (args.minline) {
+    args.inline.minSize = args.minline
+  }
+  return merge({}, defaults, args)
+}
 
 const encode = async args => {
   let config = createConfig(args)
@@ -22,15 +28,16 @@ const encode = async args => {
       iter = dir(_file, true, config)
     } else {
       log(`Encoding File: ${_file}`, args)
-      iter = file(_file, args.inline || false, config)
+      iter = await file(_file, args.inline || false, config)
     }
 
     let last
     for await (let block of iter) {
+      let cid = await block.cid()
       if (block.codec === 'raw') {
-        log(`Block: RAW(${(await block.cid()).toString()})`)
+        log(`Block: RAW(${cid.toString()})`, args)
       } else {
-        log(`Block: ${printify(block.decode())}`, args)
+        log(`Block (${cid.toString()}):\n ${printify(block.decode())}`, args)
       }
       last = block
     }
@@ -47,6 +54,9 @@ require('yargs') // eslint-disable-line
     builder: yargs => {
       yargs.positional('files', {
         desc: 'Files to encode'
+      })
+      yargs.option('minline', {
+        desc: 'Minimum size for inlining.'
       })
     }
   })
