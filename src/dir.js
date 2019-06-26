@@ -7,7 +7,7 @@ const _proxy = (method, args, path) => {
   return { call: { method, args, path, proxy: true } }
 } 
 
-class File extends Node {
+class Dir extends Node {
   read (args) {
     return _proxy('read', args, 'data')
   }
@@ -56,6 +56,6 @@ class File extends Node {
     return { make: { source }, proxy: true }
   }
 }
-File._type = _type
+Dir._type = _type
 
-module.exports = File
+module.exports = Dir
