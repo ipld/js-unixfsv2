@@ -26,8 +26,6 @@ const dir = async function * dir (_path, recursive = true, config = {}) {
     let fullpath = path.join(_path, name)
     let _stat = await stat(fullpath)
 
-    size += _stat.size
-
     let reader
     if (_stat.isDirectory() && recursive) {
       reader = dir(fullpath, true, config)
@@ -39,6 +37,8 @@ const dir = async function * dir (_path, recursive = true, config = {}) {
     for await (let block of reader) {
       blocks.push(block)
     }
+    let last = blocks.slice(-1)[0]
+    size += (last.source() || lase.decode()).size
     return { name, blocks }
   }).map(f => f()))
 
@@ -59,11 +59,12 @@ const dir = async function * dir (_path, recursive = true, config = {}) {
       // if the directory size is below the threshold
       // then all the files were as well
       let [ block ] = blocks
-      data[name] = block.source()
+      data[name] = block.source() || block.decode()
     }
   }
   let type = 'IPFS/Experimental/Dir/0'
-  yield Block.encoder({ size, data, type }, config.codec)
+  let name = path.basename(_path)
+  yield Block.encoder({ name, size, data, type }, config.codec)
 }
 
 exports.file = file
