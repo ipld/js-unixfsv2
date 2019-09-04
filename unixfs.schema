@@ -31,10 +31,11 @@ type Directory struct {
 # type ByteList bytes<ByteListLayout>
 # type FlatList bytes<FlatListLayout>
 
+
 type Data union {
   | Bytes "bytes"
   # | &Bytes "bytesLink"
-  # | ByteList "bytesList"
+  | List "bytesList"
   # | &ByteList "bytesListLink"
   # | FlatList "flatList"
   # | &FlatList "flatListLink"

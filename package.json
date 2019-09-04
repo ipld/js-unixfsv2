@@ -11,6 +11,8 @@
   "keywords": [],
   "author": "Mikeal Rogers <mikeal.rogers@gmail.com> (http://www.mikealrogers.com)",
   "dependencies": {
+    "@ipld/block": "^2.0.4",
+    "@ipld/printify": "0.0.0",
     "ipld-schema-gen": "0.0.0",
     "mime-types": "^2.1.22",
     "stream-chunker": "^1.2.8"
