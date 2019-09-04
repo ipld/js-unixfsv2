@@ -1,44 +1,33 @@
 {
-  "name": "js-unixfsv2-draft",
-  "version": "0.5.1",
-  "description": "",
+  "name": "js-unixfsv2",
+  "version": "0.0.0-dev",
+  "description": "Filesystem in a merkle tree.",
   "main": "src/index.js",
   "scripts": {
-    "lint": "eslint src/*.js test/*.js",
+    "lint": "aegir lint",
     "pretest": "npm run lint",
-    "test": "tap test/test-*.js"
+    "test": "aegir test -t node browser"
   },
   "keywords": [],
   "author": "Mikeal Rogers <mikeal.rogers@gmail.com> (http://www.mikealrogers.com)",
-  "license": "Apache-2.0",
   "dependencies": {
-    "@ipld/stack": "^1.2.1",
-    "cids": "^0.6.0",
+    "ipld-schema-gen": "0.0.0",
     "mime-types": "^2.1.22",
     "stream-chunker": "^1.2.8"
   },
-  "devDependencies": {
-    "babel-eslint": "^10.0.1",
-    "bent": "^1.4.0",
-    "eslint": "^5.16.0",
-    "eslint-config-standard": "^12.0.0",
-    "eslint-config-standard-babel": "0.0.2",
-    "eslint-plugin-babel": "^5.3.0",
-    "eslint-plugin-import": "^2.17.1",
-    "eslint-plugin-node": "^8.0.1",
-    "eslint-plugin-promise": "^4.1.1",
-    "eslint-plugin-standard": "^4.0.0",
-    "tap": "^12.6.1"
+  "directories": {
+    "test": "test"
   },
-  "eslintConfig": {
-    "parser": "babel-eslint",
-    "extends": [
-      "standard",
-      "standard-babel"
-    ],
-    "plugins": [
-      "babel",
-      "standard"
-    ]
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ipld/js-unixfsv2.git"
+  },
+  "license": "(Apache-2.0 AND MIT)",
+  "bugs": {
+    "url": "https://github.com/ipld/js-unixfsv2/issues"
+  },
+  "homepage": "https://github.com/ipld/js-unixfsv2#readme",
+  "devDependencies": {
+    "aegir": "^20.0.0"
   }
 }
