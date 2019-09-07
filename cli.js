@@ -7,7 +7,7 @@ const { inspect } = require('util')
 const api = require('./lib/fs')
 
 const inputOption = yargs => {
-  yargs.positional('input', 
+  yargs.positional('input',
     { desc: 'input schema file' }
   )
 }
@@ -20,13 +20,13 @@ const ioOptions = yargs => {
 }
 
 const parse = async argv => {
-  let s = await parseSchema(argv.input, argv.output)
-  if (!argv.output) console.log(inspect(s, {depth: Infinity}))
+  const s = await parseSchema(argv.input, argv.output)
+  if (!argv.output) console.log(inspect(s, { depth: Infinity }))
   else fs.writeFileSync(argv.output, JSON.stringify(s))
 }
 
 const runImport = async argv => {
-  for await (let block of api.fromFileSystem(argv.input)) {
+  for await (const block of api.fromFileSystem(argv.input)) {
     if (block.codec === 'raw') {
       console.log('Block<raw>', (await block.cid()).toString())
     } else {
