@@ -68,6 +68,7 @@ type Attributes struct {
 type File struct {
   name optional String
   data optional Data
+  size optional Int
   # dataLink optional &Data
 }
 
