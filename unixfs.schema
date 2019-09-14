@@ -5,7 +5,7 @@ type Files union {
 
 type FileUnion union {
   | File "file"
-  # | &File "fileLink"
+  | &File "fileLink"
 } representation keyed
 
 # type Hamt {String:FileUnion}<HAMT>
@@ -34,9 +34,8 @@ type Directory struct {
 
 type Data union {
   | Bytes "bytes"
-  # | &Bytes "bytesLink"
+  | &Bytes "bytesLink"
   | List "bytesList"
-  # | &ByteList "bytesListLink"
   # | FlatList "flatList"
   # | &FlatList "flatListLink"
 } representation keyed
@@ -69,6 +68,5 @@ type File struct {
   name optional String
   data optional Data
   size optional Int
-  # dataLink optional &Data
 }
 
