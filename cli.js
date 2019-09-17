@@ -19,6 +19,8 @@ const ioOptions = yargs => {
   )
 }
 
+/* eslint-disable no-console */
+
 const parse = async argv => {
   const s = await parseSchema(argv.input, argv.output)
   if (!argv.output) console.log(inspect(s, { depth: Infinity }))

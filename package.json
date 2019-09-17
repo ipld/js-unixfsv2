@@ -6,7 +6,7 @@
   "scripts": {
     "lint": "aegir lint",
     "pretest": "npm run lint",
-    "test": "aegir test -t node browser"
+    "test": "aegir test -t node"
   },
   "keywords": [],
   "author": "Mikeal Rogers <mikeal.rogers@gmail.com> (http://www.mikealrogers.com)",
@@ -14,7 +14,7 @@
     "@ipld/block": "^2.0.4",
     "@ipld/printify": "0.0.0",
     "bytesish": "^0.4.1",
-    "ipld-schema-gen": "^1.1.0",
+    "ipld-schema-gen": "^1.2.2",
     "mime-types": "^2.1.24",
     "rabin-generator": "0.0.1",
     "stream-chunker": "^1.2.8"
