@@ -4,6 +4,7 @@ const tsame = require('tsame')
 const { it } = require('mocha')
 const fs = require('../lib/fs')
 const path = require('path')
+const reader = require('../lib/reader')
 
 const test = it
 
@@ -21,11 +22,11 @@ const parse = async p => {
   return { blocks, counts }
 }
 
-test('basic ', async () => {
-  const { blocks, counts } = await parse(fixture)
+test('basic reader', async () => {
+  const { blocks } = await parse(fixture)
   same(blocks.length, 39)
-  same(counts, { raw: 29, 'dag-json': 10 })
   const last = blocks[blocks.length - 1]
-  const root = last.decode()
-  same(root.size, 3117)
+  const r = reader(last)
+  const files = await r.ls('/')
+  same(files, ['bits', 'dir2', 'file1', 'file2', 'index.html', 'small.txt'])
 })
