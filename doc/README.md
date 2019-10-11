@@ -1,3 +1,12 @@
+# UnixFSv2 Schema
+
+This doc contains the File and Directory schemas with reference
+to the following advanced layouts:
+
+* [DataLayout](./DataLayout.md)
+* Hamt
+
+```sh
 type Files union {
   | Map "map"
   | Hamt "hamt"
@@ -11,7 +20,7 @@ type FileUnion union {
 # type Hamt {String:FileUnion}<HAMT>
 
 # advanced HAMT {
-#  implementation "IPLD/experimental/HAMT/v1"
+#   implementation "IPLD/experimental/HAMT/v1"
 # }
 
 type Directory struct {
@@ -20,31 +29,15 @@ type Directory struct {
   files Files
 }
 
-# advanced ByteListLayout {
-  # array of bytes or links to bytes
-# }
+advanced DataLayout
 
-# advanced FlatListLayout {
-  # balanced flat tree w/ max leaf size of bytes
-# }
-
-# type ByteList bytes<ByteListLayout>
-# type FlatList bytes<FlatListLayout>
-
-
-type Data union {
-  | Bytes "bytes"
-  | &Bytes "bytesLink"
-  | List "bytesList"
-  # | FlatList "flatList"
-  # | &FlatList "flatListLink"
-} representation keyed
+type Data bytes representation advanced DataLayout
 
 type Permissions struct {
   uid Int
   gid Int
   posix Int # The standard 0777 bitpacking masks
-  
+
   sticky Bool (implicit "false")
   setuid Bool (implicit "false")
   setgid Bool (implicit "false")
@@ -57,9 +50,9 @@ type Attributes struct {
   mtime64 optional Int
   atime64 optional Int
   ctime64 optional Int
-  
+
   permissions optional Permissions
- 
+
   devMajor optional Int
   devMinor optional Int
 }
@@ -69,4 +62,4 @@ type File struct {
   data optional Data
   size optional Int
 }
-
+```
