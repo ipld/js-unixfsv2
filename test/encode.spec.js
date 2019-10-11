@@ -1,4 +1,5 @@
 'use strict'
+const CID = require('cids')
 const assert = require('assert')
 const tsame = require('tsame')
 const { it } = require('mocha')
