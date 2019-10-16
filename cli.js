@@ -2,9 +2,7 @@
 'use strict'
 const parseSchema = require('./lib/parse.js')
 const fs = require('fs')
-const path = require('path')
 const printify = require('@ipld/printify')
-const { execSync } = require('child_process')
 const { inspect } = require('util')
 const api = require('./lib/fs')
 
@@ -38,8 +36,6 @@ const runImport = async argv => {
     }
   }
 }
-
-const j = (...args) => path.join(__dirname, ...args)
 
 const yargs = require('yargs')
 const args = yargs
