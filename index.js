@@ -1,4 +1,6 @@
-const fs = require('lib/fs')
-cosnt reader = require('lib/fs')
+'use strict'
+const fs = require('./lib/fs')
+const reader = require('./lib/reader')
 
-exports.encoder = pa 
+exports.encoder = fs
+exports.reader = reader

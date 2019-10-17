@@ -2,10 +2,9 @@
 const assert = require('assert')
 const tsame = require('tsame')
 const { it } = require('mocha')
-const fs = require('../lib/fs')
 const { readFile } = require('fs').promises
 const path = require('path')
-const reader = require('../lib/reader')
+const { encoder, reader } = require('../')
 
 const test = it
 
@@ -17,7 +16,7 @@ const parse = async p => {
   const blocks = []
   const db = {}
   const counts = { raw: 0, 'dag-json': 0 }
-  for await (const block of fs(fixture)) {
+  for await (const block of encoder(fixture)) {
     db[(await block.cid()).toString('base32')] = block
     blocks.push(block)
     counts[block.codec] += 1
