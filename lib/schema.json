@@ -56,16 +56,21 @@
         "map": {}
       }
     },
-    "Files": {
+    "DirData": {
       "kind": "union",
       "representation": {
         "keyed": {
-          "map": "Map",
+          "map": "EntryMap",
           "hamt": "Hamt"
         }
       }
     },
-    "FileUnion": {
+    "EntryMap": {
+      "kind": "map",
+      "keyType": "String",
+      "valueType": "EntryUnion"
+    },
+    "EntryUnion": {
       "kind": "union",
       "representation": {
         "keyed": {
@@ -73,6 +78,11 @@
           "fileLink": {
             "kind": "link",
             "expectedType": "File"
+          },
+          "dir": "Directory",
+          "dirLink": {
+            "kind": "link",
+            "expectedType": "Directory"
           }
         }
       }
@@ -88,8 +98,8 @@
           "type": "Int",
           "optional": true
         },
-        "files": {
-          "type": "Files"
+        "data": {
+          "type": "DirData"
         }
       },
       "representation": {
