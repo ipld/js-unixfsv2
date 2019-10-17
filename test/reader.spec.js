@@ -3,6 +3,7 @@ const assert = require('assert')
 const tsame = require('tsame')
 const { it } = require('mocha')
 const fs = require('../lib/fs')
+const { readFile } = require('fs').promises
 const path = require('path')
 const reader = require('../lib/reader')
 
@@ -38,19 +39,18 @@ test('basic reader', async () => {
   same(sub, ['dir3'])
   same(sub, await r.ls('/dir2'))
 })
-/*
+
 test('basic data read', async () => {
-  const { blocks } = await parse(fixture)
+  const { blocks, getBlock } = await parse(fixture)
   same(blocks.length, 39)
   const last = blocks[blocks.length - 1]
-  const r = reader(last)
+  const r = reader(last, getBlock)
 
   const buffers = []
   const fileReader = r.read('index.html')
   for await (const chunk of fileReader) {
     buffers.push(chunk)
   }
-  console.log({buffers})
+  const buffer = Buffer.concat(buffers)
+  same(buffer.toString(), (await readFile(path.join(fixture, 'index.html'))).toString())
 })
-
-*/

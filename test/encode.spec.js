@@ -22,7 +22,7 @@ const parse = async p => {
   return { blocks, counts, union }
 }
 
-test('basic ', async () => {
+test('basic encode', async () => {
   const { blocks, counts, union } = await parse(fixture)
   same(union, 'dir')
   same(blocks.length, 39)
