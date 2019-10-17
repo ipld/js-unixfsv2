@@ -2,7 +2,7 @@
 const assert = require('assert')
 const tsame = require('tsame')
 const { it } = require('mocha')
-const fs = require('../lib/fs')
+const { encoder } = require('../')
 const path = require('path')
 
 const test = it
@@ -14,7 +14,7 @@ const fixture = path.join(__dirname, 'fixture')
 const parse = async p => {
   const blocks = []
   const counts = { raw: 0, 'dag-json': 0 }
-  const { iter, union } = await fs.fromFileSystem(fixture)
+  const { iter, union } = await encoder.fromFileSystem(fixture)
   for await (const block of iter) {
     blocks.push(block)
     counts[block.codec] += 1
