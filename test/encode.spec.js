@@ -14,15 +14,17 @@ const fixture = path.join(__dirname, 'fixture')
 const parse = async p => {
   const blocks = []
   const counts = { raw: 0, 'dag-json': 0 }
-  for await (const block of fs(fixture)) {
+  const { iter, union } = await fs(fixture)
+  for await (const block of iter) {
     blocks.push(block)
     counts[block.codec] += 1
   }
-  return { blocks, counts }
+  return { blocks, counts, union }
 }
 
 test('basic ', async () => {
-  const { blocks, counts } = await parse(fixture)
+  const { blocks, counts, union } = await parse(fixture)
+  same(union, 'dir')
   same(blocks.length, 39)
   same(counts, { raw: 29, 'dag-json': 10 })
   const last = blocks[blocks.length - 1]

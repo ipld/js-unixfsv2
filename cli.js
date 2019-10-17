@@ -28,7 +28,8 @@ const parse = async argv => {
 }
 
 const runImport = async argv => {
-  for await (const block of api.fromFileSystem(argv.input)) {
+  const { iter } = await api.fromFileSystem(argv.input)
+  for await (const block of iter) {
     if (block.codec === 'raw') {
       console.log('Block<raw>', (await block.cid()).toString())
     } else {

@@ -7,14 +7,18 @@ to the following advanced layouts:
 * Hamt
 
 ```sh
-type Files union {
-  | Map "map"
+type DirData union {
+  | EntryMap "map"
   | Hamt "hamt"
 } representation keyed
 
-type FileUnion union {
+type EntryMap {String:EntryUnion}
+
+type EntryUnion union {
   | File "file"
   | &File "fileLink"
+  | Directory "dir"
+  | &Directory "dirLink"
 } representation keyed
 
 # type Hamt {String:FileUnion}<HAMT>
@@ -26,7 +30,7 @@ type FileUnion union {
 type Directory struct {
   name optional String
   size optional Int
-  files Files
+  data DirData
 }
 
 advanced DataLayout
