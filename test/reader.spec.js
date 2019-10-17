@@ -17,14 +17,13 @@ const parse = async p => {
   const blocks = []
   const db = {}
   const counts = { raw: 0, 'dag-json': 0 }
-  const { iter, union } = await fs(fixture)
-  for await (const block of iter) {
+  for await (const block of fs(fixture)) {
     db[(await block.cid()).toString('base32')] = block
     blocks.push(block)
     counts[block.codec] += 1
   }
   const getBlock = cid => db[cid.toString('base32')] || null
-  return { blocks, counts, getBlock, union }
+  return { blocks, counts, getBlock }
 }
 
 test('basic reader', async () => {

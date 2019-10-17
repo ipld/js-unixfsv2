@@ -14,7 +14,7 @@ const fixture = path.join(__dirname, 'fixture')
 const parse = async p => {
   const blocks = []
   const counts = { raw: 0, 'dag-json': 0 }
-  const { iter, union } = await fs(fixture)
+  const { iter, union } = await fs.fromFileSystem(fixture)
   for await (const block of iter) {
     blocks.push(block)
     counts[block.codec] += 1
