@@ -18,13 +18,13 @@ type NestedByteList bytes representation advanced NestedByteListLayout
 
 type ByteList [&Bytes]
 
-type ByteLinks struct {
+type ByteLinksLayout struct {
   indexes IndexList
   parts ByteList
 }
 
-advanced ByteLinks
-type ByteLinkArray bytes representation advanced ByteLinks
+advanced ByteLinksLayout
+type ByteLinks bytes representation advanced ByteLinksLayout
 
 type BytesUnion union {
   | Bytes "bytes"
@@ -37,3 +37,7 @@ type DataLayout struct {
   bytes BytesUnion
   size Int
 }
+
+advanced DataLayout
+type Data bytes representation advanced DataLayout
+```

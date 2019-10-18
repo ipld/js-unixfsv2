@@ -33,10 +33,6 @@ type Directory struct {
   data DirData
 }
 
-advanced DataLayout
-
-type Data bytes representation advanced DataLayout
-
 type Permissions struct {
   uid Int
   gid Int

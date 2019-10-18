@@ -1,110 +1,5 @@
 {
   "types": {
-    "Index": {
-      "kind": "list",
-      "valueType": "Int"
-    },
-    "IndexList": {
-      "kind": "list",
-      "valueType": "Index"
-    },
-    "PartList": {
-      "kind": "list",
-      "valueType": {
-        "kind": "link",
-        "expectedType": "PartUnion"
-      }
-    },
-    "PartUnion": {
-      "kind": "union",
-      "representation": {
-        "keyed": {
-          "bu": {
-            "kind": "link",
-            "expectedType": "BytesUnion"
-          },
-          "bytes": {
-            "kind": "link",
-            "expectedType": "Bytes"
-          }
-        }
-      }
-    },
-    "NestedByteListLayout": {
-      "kind": "struct",
-      "fields": {
-        "indexes": {
-          "type": "IndexList"
-        },
-        "parts": {
-          "type": "PartList"
-        }
-      },
-      "representation": {
-        "map": {}
-      }
-    },
-    "NestedByteList": {
-      "kind": "bytes",
-      "representation": {
-        "advanced": "NestedByteListLayout"
-      }
-    },
-    "ByteList": {
-      "kind": "list",
-      "valueType": {
-        "kind": "link",
-        "expectedType": "Bytes"
-      }
-    },
-    "ByteLinks": {
-      "kind": "struct",
-      "fields": {
-        "indexes": {
-          "type": "IndexList"
-        },
-        "parts": {
-          "type": "ByteList"
-        }
-      },
-      "representation": {
-        "map": {}
-      }
-    },
-    "ByteLinkArray": {
-      "kind": "bytes",
-      "representation": {
-        "advanced": "ByteLinks"
-      }
-    },
-    "BytesUnion": {
-      "kind": "union",
-      "representation": {
-        "keyed": {
-          "bytes": "Bytes",
-          "bytesLink": {
-            "kind": "link",
-            "expectedType": "Bytes"
-          },
-          "byteLinks": "ByteLinks",
-          "nbl": "NestedByteList"
-        }
-      }
-    },
-    "DataLayout": {
-      "kind": "struct",
-      "fields": {
-        "bytes": {
-          "type": "BytesUnion"
-        },
-        "size": {
-          "type": "Int"
-        }
-      },
-      "representation": {
-        "map": {}
-      }
-    },
     "DirData": {
       "kind": "union",
       "representation": {
@@ -153,12 +48,6 @@
       },
       "representation": {
         "map": {}
-      }
-    },
-    "Data": {
-      "kind": "bytes",
-      "representation": {
-        "advanced": "DataLayout"
       }
     },
     "Permissions": {
@@ -262,17 +151,6 @@
       "representation": {
         "map": {}
       }
-    }
-  },
-  "advanced": {
-    "NestedByteListLayout": {
-      "kind": "advanced"
-    },
-    "ByteLinks": {
-      "kind": "advanced"
-    },
-    "DataLayout": {
-      "kind": "advanced"
     }
   }
 }

@@ -1,0 +1,126 @@
+{
+  "types": {
+    "Index": {
+      "kind": "list",
+      "valueType": "Int"
+    },
+    "IndexList": {
+      "kind": "list",
+      "valueType": "Index"
+    },
+    "PartList": {
+      "kind": "list",
+      "valueType": {
+        "kind": "link",
+        "expectedType": "PartUnion"
+      }
+    },
+    "PartUnion": {
+      "kind": "union",
+      "representation": {
+        "keyed": {
+          "bu": {
+            "kind": "link",
+            "expectedType": "BytesUnion"
+          },
+          "bytes": {
+            "kind": "link",
+            "expectedType": "Bytes"
+          }
+        }
+      }
+    },
+    "NestedByteListLayout": {
+      "kind": "struct",
+      "fields": {
+        "indexes": {
+          "type": "IndexList"
+        },
+        "parts": {
+          "type": "PartList"
+        }
+      },
+      "representation": {
+        "map": {}
+      }
+    },
+    "NestedByteList": {
+      "kind": "bytes",
+      "representation": {
+        "advanced": "NestedByteListLayout"
+      }
+    },
+    "ByteList": {
+      "kind": "list",
+      "valueType": {
+        "kind": "link",
+        "expectedType": "Bytes"
+      }
+    },
+    "ByteLinksLayout": {
+      "kind": "struct",
+      "fields": {
+        "indexes": {
+          "type": "IndexList"
+        },
+        "parts": {
+          "type": "ByteList"
+        }
+      },
+      "representation": {
+        "map": {}
+      }
+    },
+    "ByteLinks": {
+      "kind": "bytes",
+      "representation": {
+        "advanced": "ByteLinksLayout"
+      }
+    },
+    "BytesUnion": {
+      "kind": "union",
+      "representation": {
+        "keyed": {
+          "bytes": "Bytes",
+          "bytesLink": {
+            "kind": "link",
+            "expectedType": "Bytes"
+          },
+          "byteLinks": "ByteLinks",
+          "nbl": "NestedByteList"
+        }
+      }
+    },
+    "DataLayout": {
+      "kind": "struct",
+      "fields": {
+        "bytes": {
+          "type": "BytesUnion"
+        },
+        "size": {
+          "type": "Int"
+        }
+      },
+      "representation": {
+        "map": {}
+      }
+    },
+    "Data": {
+      "kind": "bytes",
+      "representation": {
+        "advanced": "DataLayout"
+      }
+    }
+  },
+  "advanced": {
+    "NestedByteListLayout": {
+      "kind": "advanced"
+    },
+    "ByteLinksLayout": {
+      "kind": "advanced"
+    },
+    "DataLayout": {
+      "kind": "advanced"
+    }
+  }
+}
