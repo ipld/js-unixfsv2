@@ -1,3 +1,4 @@
+'use strict'
 const schema = require('./schema')()
 const Block = require('@ipld/block')
 const rabin = require('rabin-generator')
@@ -6,6 +7,8 @@ const file = require('./file')
 const { createReadStream, promises } = require('fs')
 const fs = promises
 
+// eslint bug: https://github.com/eslint/eslint/issues/12459
+// eslint-disable-next-line require-await
 const fromFile = async function * (f, stat, opts = {}) {
   opts.chunker = opts.chunker || rabin
   let iter = createReadStream(f)
@@ -22,9 +25,7 @@ const fromDirectory = async function * (f, stat, opts = {}) {
   for (const file of dirfiles) {
     const { iter, union } = await fromFileSystem(path.join(f, file), opts)
     let last
-    let _size
     for await (const block of iter) {
-      const s = block.source()
       await block.cid()
       yield block
       last = block

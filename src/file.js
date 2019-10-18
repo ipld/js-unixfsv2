@@ -1,3 +1,4 @@
+'use strict'
 const schema = require('./schema')()
 const Block = require('@ipld/block')
 const bytes = require('bytesish')

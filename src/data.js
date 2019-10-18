@@ -1,3 +1,4 @@
+'use strict'
 const gen = require('../../ipld-schema-gen')
 const schema = require('./data-layout.json')
 const Block = require('@ipld/block')
@@ -35,7 +36,6 @@ const readBytes = async function * (node, start = 0, end) {
 const getLength = node => {
   const indexes = node.resolve('indexes').value
   if (!indexes.length) return 0
-  const i = indexes.length - 1
   const [offset, length] = indexes[indexes.length - 1].encode()
   return offset + length
 }
@@ -97,7 +97,6 @@ module.exports = opts => {
     for (const chunk of chunks) {
       if (chunk.length > max) {
         for (const _chunk of chunks) {
-          let last
           let offset = 0
           const _indexes = []
           let _parts = []
