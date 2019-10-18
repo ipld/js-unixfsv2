@@ -44,7 +44,21 @@ test('basic byteLink', async () => {
   assert.ok(bl)
   assert.strictEqual(blocks, 3)
 
-  const iter = bl.read()
-  const str = (await concat(iter)).toString()
-  same(str, Buffer.concat([buffer, buffer, buffer]).toString())
+  let iter = bl.read()
+  let str = (await concat(iter)).toString()
+  const fixture = Buffer.concat([buffer, buffer, buffer])
+  same(str, fixture.toString())
+  same(bl.length(), fixture.length)
+
+  iter = bl.read(0, 6)
+  str = (await concat(iter)).toString()
+  same(str, fixture.slice(0, 6).toString())
+
+  iter = bl.read(15, 18)
+  str = (await concat(iter)).toString()
+  same(str, fixture.slice(15, 18).toString())
+})
+
+test('nested byte tree', async () => {
+
 })
