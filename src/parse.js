@@ -1,8 +1,9 @@
+'use strict'
 const schema = require('ipld-schema')
-const fs = require('fs')
+const { readFile } = require('fs').promises
 
 const main = async (input) => {
-  return schema.parse(fs.readFileSync(input).toString())
+  return schema.parse((await readFile(input)).toString())
 }
 
 module.exports = main

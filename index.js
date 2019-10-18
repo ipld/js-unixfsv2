@@ -1,7 +1,7 @@
 'use strict'
-const fs = require('./lib/fs')
-const createTypes = require('./lib/schema')
-const reader = require('./lib/reader')
+const fs = require('./src/fs')
+const createTypes = require('./src/schema')
+const reader = require('./src/reader')
 
 exports.encoder = fs
 exports.reader = reader

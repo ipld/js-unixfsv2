@@ -1,3 +1,4 @@
+'use strict'
 const CID = require('cids')
 const Block = require('@ipld/block')
 const createTypes = require('./schema')
