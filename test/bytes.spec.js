@@ -74,10 +74,11 @@ test('nested byte tree', async () => {
   }
   buffers = await Promise.all(buffers)
   const blocks = []
-  let nested
+  let data
   for await (const { block, root } of types.Data.from(buffers, { maxLength: 100 })) {
     if (block) blocks.push(block)
-    nested = root
+    data = root
   }
   console.log(blocks.length)
+  console.log(data)
 })
