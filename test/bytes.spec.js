@@ -3,6 +3,8 @@ const assert = require('assert')
 const tsame = require('tsame')
 const { it } = require('mocha')
 const { createTypes } = require('../')
+const { promisify } = require('util')
+const crypto = require('crypto')
 // const Block = require('@ipld/block')
 
 const test = it
@@ -59,15 +61,18 @@ test('basic byteLink', async () => {
   same(str, fixture.slice(15, 18).toString())
 })
 
+const random = () => promisify(crypto.randomBytes)(4)
+
 test('nested byte tree', async () => {
   const { getBlock, put } = storage()
   const types = createTypes({ getBlock })
   let i = 0
-  const buffers = []
+  let buffers = []
   while (i < 1000) {
-    buffers.push(buffer)
+    buffers.push(random())
     i++
   }
+  buffers = await Promise.all(buffers)
   const blocks = []
   let nested
   for await (const { block, root } of types.Data.from(buffers, { maxLength: 100 })) {
