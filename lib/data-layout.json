@@ -10,10 +10,7 @@
     },
     "PartList": {
       "kind": "list",
-      "valueType": {
-        "kind": "link",
-        "expectedType": "PartUnion"
-      }
+      "valueType": "PartUnion"
     },
     "PartUnion": {
       "kind": "union",

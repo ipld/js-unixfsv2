@@ -60,5 +60,19 @@ test('basic byteLink', async () => {
 })
 
 test('nested byte tree', async () => {
-
+  const { getBlock, put } = storage()
+  const types = createTypes({ getBlock })
+  let i = 0
+  const buffers = []
+  while (i < 1000) {
+    buffers.push(buffer)
+    i++
+  }
+  const blocks = []
+  let nested
+  for await (const { block, root } of types.Data.from(buffers, { maxLength: 100 })) {
+    if (block) blocks.push(block)
+    nested = root
+  }
+  console.log(blocks.length)
 })
