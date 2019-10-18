@@ -1,7 +1,7 @@
 ```sh
 type Index [Int]
 type IndexList [Index]
-type PartList [&PartUnion]
+type PartList [PartUnion]
 
 type PartUnion union {
   | &BytesUnion "bu"
