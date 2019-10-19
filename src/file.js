@@ -3,7 +3,7 @@ const schema = require('./schema')()
 const Block = require('@ipld/block')
 const bytes = require('bytesish')
 
-const defaultCodec = 'dag-json'
+const defaultCodec = 'dag-cbor'
 
 const fromIter = async function * (iter, name, opts = {}) {
   const { write, end } = schema.Data.writer(opts)

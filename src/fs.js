@@ -18,7 +18,7 @@ const fromFile = async function * (f, stat, opts = {}) {
 
 const fromDirectory = async function * (f, stat, opts = {}) {
   const encoder = opts.encoder || Block.encoder
-  const codec = opts.codec || 'dag-json'
+  const codec = opts.codec || 'dag-cbor'
   const dirfiles = await fs.readdir(f)
   const results = {}
   let size = 0
