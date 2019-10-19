@@ -15,7 +15,7 @@ const fixture = path.join(__dirname, 'fixture')
 const parse = async p => {
   const blocks = []
   const db = {}
-  const counts = { raw: 0, 'dag-json': 0 }
+  const counts = { raw: 0, 'dag-cbor': 0 }
   for await (const block of encoder(fixture)) {
     db[(await block.cid()).toString('base32')] = block
     blocks.push(block)
@@ -31,7 +31,7 @@ test('basic reader', async () => {
   const last = blocks[blocks.length - 1]
   const r = reader(last, getBlock)
   const files = await r.ls('/')
-  same(files, ['bits', 'dir2', 'file1', 'file2', 'index.html', 'small.txt'])
+  same(files.sort(), ['bits', 'dir2', 'file1', 'file2', 'index.html', 'small.txt'].sort())
 
   const sub = await r.ls('dir2')
   same(sub, ['dir3'])

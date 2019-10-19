@@ -23,8 +23,9 @@ class Reader {
     if (Block.isBlock(root)) {
       root = this.types.Directory.decoder(root.decode())
     }
-    if (CID.isCID(root) || typeof root === 'string') {
-      root = get(new CID(root)).then(b => this.types.Directory.decoder(b.decode()))
+    if (typeof root === 'string') root = new CID(root)
+    if (CID.isCID(root)) {
+      root = get(root).then(b => this.types.Directory.decoder(b.decode()))
     }
     this.root = root
     this.getBlock = get
