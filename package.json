@@ -6,7 +6,7 @@
   "scripts": {
     "lint": "aegir lint",
     "pretest": "npm run lint",
-    "build": "ipld-schema to-json doc/DataLayout.md > lib/data-layout.json && ipld-schema to-json doc/README.md > lib/schema.json",
+    "build": "ipld-schema to-json doc/DataLayout.md > src/data-layout.json && ipld-schema to-json doc/README.md > src/schema.json",
     "test": "aegir test -t node"
   },
   "keywords": [],

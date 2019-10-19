@@ -8,23 +8,11 @@
       "kind": "list",
       "valueType": "Index"
     },
-    "PartList": {
+    "ByteUnionList": {
       "kind": "list",
-      "valueType": "PartUnion"
-    },
-    "PartUnion": {
-      "kind": "union",
-      "representation": {
-        "keyed": {
-          "bu": {
-            "kind": "link",
-            "expectedType": "BytesUnion"
-          },
-          "bytes": {
-            "kind": "link",
-            "expectedType": "Bytes"
-          }
-        }
+      "valueType": {
+        "kind": "link",
+        "expectedType": "BytesUnion"
       }
     },
     "NestedByteListLayout": {
@@ -34,7 +22,10 @@
           "type": "IndexList"
         },
         "parts": {
-          "type": "PartList"
+          "type": "ByteUnionList"
+        },
+        "algo": {
+          "type": "String"
         }
       },
       "representation": {

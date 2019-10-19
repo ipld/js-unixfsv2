@@ -3,6 +3,8 @@ const gen = require('../../ipld-schema-gen')
 const schema = require('./data-layout.json')
 const Block = require('@ipld/block')
 
+const indexLength = ii => ii[ii.length - 1].reduce((x, y) => x + y)
+
 const readAnything = async function * (selector, node, start = 0, end = Infinity) {
   const offsets = (offset, length) => {
     let l = end - offset
@@ -72,8 +74,6 @@ module.exports = opts => {
     const data = await end()
     yield { root: classes.ByteLinks.encoder(data) }
   }
-  classes.NestedByteList.flatDag = async function * (arr, maxLength) {
-  }
   const defaults = {
     maxListLength: 500,
     algorithm: 'balanced',
@@ -85,46 +85,56 @@ module.exports = opts => {
     }
     indexes = [...indexes]
     parts = [...parts]
-    const chunks = []
-    const size = Math.floor(indexes.length / max)
-    while (indexes.length) {
-      chunks.push({
-        indexes: indexes.splice(0, size),
-        parts: parts.splice(0, size),
-        algo: 'balanced'
-      })
-    }
-    for (const chunk of chunks) {
-      if (chunk.length > max) {
-        for (const _chunk of chunks) {
-          let offset = 0
-          const _indexes = []
-          let _parts = []
-          for (const { len, block } of balancedDag(_chunk.indexes, _chunk.parts)) {
-            yield { len, block }
-            _indexes.push([offset, len])
-            _parts.push(block.cid())
-            offset += len
-          }
-          _parts = (await Promise.all(_parts)).map(cid => ({ bu: cid }))
-          const union = { nbl: { indexes: _indexes, parts: _parts, algo: 'balanced' } }
-          const node = classes.BytesUnion.encoder(union)
-          const block = node.block()
-          yield { len: offset, block }
+    const size = Math.ceil(indexes.length / max)
+
+    const main = { indexes: [], parts: [] }
+    if (size > max) {
+      while (indexes.length) {
+        const chunk = {
+          indexes: indexes.splice(0, max),
+          parts: parts.splice(0, max),
+          algo: 'balanced'
         }
-      } else {
+        let union
+        for await (const { len, block, root } of balancedDag(chunk.indexes, chunk.parts, max, codec)) {
+          if (block) {
+            yield { len, block }
+          }
+          union = root
+        }
+        const node = classes.BytesUnion.encoder(union)
+        const block = node.block()
+        const len = indexLength(union.nbl.indexes)
+        yield { len, block }
+        main.indexes.push(len)
+        main.parts.push(block.cid())
+      }
+    } else {
+      while (indexes.length) {
+        const chunk = {
+          indexes: indexes.splice(0, max),
+          parts: parts.splice(0, max)
+        }
         let offset = 0
         for (const part of chunk.indexes) {
           part[0] = offset
           offset += part[1]
         }
-        const block = classes.BytesUnion.encoder({ nbl: chunk }).block()
+        const block = classes.BytesUnion.encoder({ byteLinks: chunk }).block()
         yield { len: offset, block }
+        main.indexes.push(offset)
+        main.parts.push(block.cid())
       }
     }
+    let offset = 0
+    indexes = main.indexes.map(i => {
+      const ret = [offset, i]
+      offset += i
+      return ret
+    })
+    parts = await Promise.all(main.parts)
+    yield { root: { nbl: { indexes, parts, algo: 'balanced' } } }
   }
-
-  const indexLength = ii => ii[ii.length - 1].reduce((x, y) => x + y)
 
   classes.Data.writer = (opts = {}) => {
     opts = { ...defaults, ...opts }
@@ -136,23 +146,22 @@ module.exports = opts => {
     }
     const _end = async () => {
       const { indexes, parts } = await end()
-      if (!indexes.length) return { data: { bytes: Buffer.from('') }, size: 0 }
+      if (!indexes.length) return { bytes: { bytes: Buffer.from('') }, size: 0 }
 
       const size = indexLength(indexes)
 
       if (indexes.length === 1) {
         const length = indexes[0][1]
         if (length > opts.inline) {
-          return { data: { byteLink: parts[0] }, size }
+          return { bytes: { byteLink: parts[0] }, size }
         } else {
-          return { data: { bytes: first.encode() }, size }
+          return { bytes: { bytes: first.encode() }, size }
         }
       }
       if (indexes.length > opts.maxListLength) {
-        const p = parts.map(p => ({ bytes: p }))
         const results = []
         if (opts.algorithm === 'balanced') {
-          for await (const result of balancedDag(indexes, p, opts.maxListLength)) {
+          for await (const result of balancedDag(indexes, parts, opts.maxListLength, opts.codec)) {
             results.push(result)
           }
         } else {
@@ -160,9 +169,9 @@ module.exports = opts => {
         }
         const last = results.pop()
         const blocks = results.map(r => r.block)
-        return { blocks, data: last.block.source(), size }
+        return { blocks, bytes: last.root, size }
       } else {
-        return { data: { byteLinks: { indexes, parts } }, size }
+        return { bytes: { byteLinks: { indexes, parts } }, size }
       }
     }
     return { write: _write, end: _end }
@@ -172,10 +181,10 @@ module.exports = opts => {
     for (const buffer of arr) {
       yield { block: write(buffer) }
     }
-    const union = await end()
-    yield * union.blocks.map(u => ({ block: u }))
-    delete union.blocks
-    yield { root: classes.Data.encoder(union) }
+    const data = await end()
+    yield * data.blocks.map(u => ({ block: u }))
+    delete data.blocks
+    yield { root: classes.Data.encoder(data) }
   }
   return classes
 }

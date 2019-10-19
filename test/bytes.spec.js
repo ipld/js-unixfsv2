@@ -75,10 +75,14 @@ test('nested byte tree', async () => {
   buffers = await Promise.all(buffers)
   const blocks = []
   let data
-  for await (const { block, root } of types.Data.from(buffers, { maxLength: 100 })) {
-    if (block) blocks.push(block)
+  for await (const { block, root } of types.Data.from(buffers, { maxListLength: 30 })) {
+    if (block) {
+      blocks.push(block)
+      await put(block)
+    }
     data = root
   }
-  console.log(blocks.length)
-  console.log(data)
+  const b1 = Buffer.concat(buffers).slice(51, 1300)
+  const b2 = await concat(data.read(51, 1300))
+  same(b1.length, b2.length)
 })

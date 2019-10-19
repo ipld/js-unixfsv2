@@ -1,16 +1,12 @@
 ```sh
 type Index [Int]
 type IndexList [Index]
-type PartList [PartUnion]
-
-type PartUnion union {
-  | &BytesUnion "bu"
-  | &Bytes "bytes"
-} representation keyed
+type ByteUnionList [&BytesUnion]
 
 type NestedByteListLayout struct {
   indexes IndexList
-  parts PartList
+  parts ByteUnionList
+  algo String
 }
 
 advanced NestedByteListLayout
