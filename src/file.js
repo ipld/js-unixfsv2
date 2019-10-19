@@ -3,38 +3,23 @@ const schema = require('./schema')()
 const Block = require('@ipld/block')
 const bytes = require('bytesish')
 
-const codec = 'dag-json'
-const encoder = Block.encoder
-const defaults = { codec, encoder, arrayLimit: 512 }
+const defaultCodec = 'dag-json'
 
 const fromIter = async function * (iter, name, opts = {}) {
-  opts = Object.assign({}, defaults, opts)
-  const bytesList = []
-  let size = 0
-  // iter = opts.chunker(iter)
+  const { write, end } = schema.Data.writer(opts)
   for await (let chunk of iter) {
     chunk = bytes.native(chunk)
-    const block = opts.encoder(chunk, 'raw')
+    const block = write(chunk)
     yield block
-    bytesList.push([[size, chunk.length], await block.cid()])
-    size += chunk.length
+  }
+  const data = await end()
+  if (data.blocks) {
+    yield * data.blocks
+    delete data.blocks
   }
 
-  let b
-  if (bytesList.length === 1) {
-    b = { bytesLink: bytesList[0][1] }
-  } else {
-    if (bytesList.length < opts.arrayLimit) {
-      const indexes = bytesList.map(b => b[0])
-      const parts = bytesList.map(b => b[1])
-      b = { byteLinks: { indexes, parts } }
-    } else {
-      throw new Error('Not Implemented')
-    }
-  }
-
-  const file = schema.File.encoder({ name, data: { bytes: b, size } })
-  const block = opts.encoder(file.encode(), opts.codec)
+  const file = schema.File.encoder({ name, data })
+  const block = Block.encoder(file.encode(), opts.codec || defaultCodec)
   yield block
 }
 

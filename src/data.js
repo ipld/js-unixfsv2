@@ -153,7 +153,7 @@ module.exports = opts => {
       if (indexes.length === 1) {
         const length = indexes[0][1]
         if (length > opts.inline) {
-          return { bytes: { byteLink: parts[0] }, size }
+          return { bytes: { bytesLink: parts[0] }, size }
         } else {
           return { bytes: { bytes: first.encode() }, size }
         }
