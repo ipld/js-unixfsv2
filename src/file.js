@@ -1,26 +1,26 @@
 'use strict'
-const schema = require('./schema')()
-const Block = require('@ipld/block')
 const bytes = require('bytesish')
 
-const defaultCodec = 'dag-cbor'
+const attach = types => {
+  const fromIter = async function * (iter, name, opts = {}) {
+    const { write, end } = types.Data.writer(opts)
+    for await (let chunk of iter) {
+      chunk = bytes.native(chunk)
+      const block = write(chunk)
+      yield { block }
+    }
+    const data = await end()
+    if (data.blocks) {
+      for (const block of (data.blocks)) {
+        yield { block }
+      }
+      delete data.blocks
+    }
 
-const fromIter = async function * (iter, name, opts = {}) {
-  const { write, end } = schema.Data.writer(opts)
-  for await (let chunk of iter) {
-    chunk = bytes.native(chunk)
-    const block = write(chunk)
-    yield block
+    const file = types.File.encoder({ name, data })
+    yield { root: file }
   }
-  const data = await end()
-  if (data.blocks) {
-    yield * data.blocks
-    delete data.blocks
-  }
-
-  const file = schema.File.encoder({ name, data })
-  const block = Block.encoder(file.encode(), opts.codec || defaultCodec)
-  yield block
+  types.File.fromIter = fromIter
 }
 
-exports.fromIter = fromIter
+module.exports = attach

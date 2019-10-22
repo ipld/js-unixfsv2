@@ -1,7 +1,7 @@
 'use strict'
 const CID = require('cids')
 const Block = require('@ipld/block')
-const createTypes = require('./schema')
+const createTypes = require('./types')
 
 const buildPath = (path) => {
   return [].concat(

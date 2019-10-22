@@ -16,7 +16,8 @@ const parse = async p => {
   const blocks = []
   const db = {}
   const counts = { raw: 0, 'dag-cbor': 0 }
-  for await (const block of encoder(fixture)) {
+  for await (let { block, root } of encoder(fixture)) {
+    if (root) block = root.block()
     db[(await block.cid()).toString('base32')] = block
     blocks.push(block)
     counts[block.codec] += 1

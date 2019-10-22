@@ -19,14 +19,10 @@ const storage = require('any-key-value-store')
 const putBlock = async b => storage.put((await b.cid()).toString(), b.encode())
 
 const storeDirectory = async path => {
-  let last
-  for await (const block of encoder(__dirname)) {
-    await storage.putBlock(block)
-    last = block
+  for await (const { block, root } of encoder(__dirname)) {
+    await storage.putBlock(block || root.block())
+    if (root) return root.block().cid()
   }
-  const cid = await last.cid()
-  // return base encoded string of root block CID
-  return cid.toString()
 }
 ```
 

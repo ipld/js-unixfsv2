@@ -14,17 +14,20 @@ const fixture = path.join(__dirname, 'fixture')
 const parse = async p => {
   const blocks = []
   const counts = { raw: 0, 'dag-cbor': 0 }
-  const { iter, union } = await encoder.fromFileSystem(fixture)
-  for await (const block of iter) {
+  const iter = await encoder.fromFileSystem(fixture)
+  for await (let { block, root } of iter) {
+    if (root) {
+      block = root.block()
+      same(root.constructor.name, 'Directory')
+    }
     blocks.push(block)
     counts[block.codec] += 1
   }
-  return { blocks, counts, union }
+  return { blocks, counts }
 }
 
 test('basic encode', async () => {
-  const { blocks, counts, union } = await parse(fixture)
-  same(union, 'dir')
+  const { blocks, counts } = await parse(fixture)
   same(blocks.length, 39)
   same(counts, { raw: 29, 'dag-cbor': 10 })
   const last = blocks[blocks.length - 1]

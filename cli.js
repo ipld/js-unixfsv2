@@ -6,7 +6,7 @@ const printify = require('@ipld/printify')
 const { inspect } = require('util')
 const api = require('./src/fs')
 const reader = require('./src/reader')
-const createStorage = require('./src/localStorage')
+const createStorage = require('./src/local-storage')
 
 /* eslint-disable no-console */
 
@@ -17,13 +17,14 @@ const parse = async argv => {
 }
 
 const runImport = async argv => {
-  const { iter } = await api.fromFileSystem(argv.input)
+  const iter = await api.fromFileSystem(argv.input)
   let store
   if (argv.storage) store = createStorage(argv.storage)
-  let last
-  for await (const block of iter) {
+  for await (let { block, root } of iter) {
+    if (root) block = root.block()
     if (store) {
       await store.put(block)
+      if (root) console.log('Root:', (await root.cid()).toString())
     } else {
       if (block.codec === 'raw') {
         console.log('Block<raw>', (await block.cid()).toString())
@@ -31,9 +32,7 @@ const runImport = async argv => {
         console.log('Block<' + block.codec + '>', printify(block.decode()))
       }
     }
-    last = block
   }
-  console.log('Root:', (await last.cid()).toString('base32'))
 }
 
 const createReader = argv => {
