@@ -24,7 +24,7 @@ const runImport = async argv => {
     if (root) block = root.block()
     if (store) {
       await store.put(block)
-      if (root) console.log('Root:', (await root.cid()).toString())
+      if (root) console.log('Root:', (await root.block().cid()).toString())
     } else {
       if (block.codec === 'raw') {
         console.log('Block<raw>', (await block.cid()).toString())
