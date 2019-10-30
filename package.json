@@ -1,5 +1,5 @@
 {
-  "name": "js-unixfsv2",
+  "name": "@ipld/unixfsv2",
   "version": "0.0.0-dev",
   "description": "Filesystem in a merkle tree.",
   "browser": "./browser.js",
