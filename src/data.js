@@ -1,5 +1,5 @@
 'use strict'
-const gen = require('../../ipld-schema-gen')
+const gen = require('@ipld/schema-gen')
 const schema = require('./data-layout.json')
 const Block = require('@ipld/block')
 

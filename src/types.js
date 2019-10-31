@@ -1,5 +1,5 @@
 'use strict'
-const gen = require('../../ipld-schema-gen')
+const gen = require('@ipld/schema-gen')
 const data = require('./data.js')
 const main = require('./schema.json')
 const attach = require('./file.js')
