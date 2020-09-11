@@ -21,6 +21,9 @@ const encode = async function * (Block, path, chunker=onemeg) {
     const files = await fs.readdir(path)
     const dir = {}
     for (const file of files) {
+      // Can't test this because this is the linux max file size already
+      /* c8 ignore next */
+      if (file.length > 255) /* c8 ignore next */ throw new Error('file is over max filesize')
       let last
       for await (const block of encode(Block, new URL(file, path + '/sub'), chunker)) {
         if (last) yield last
