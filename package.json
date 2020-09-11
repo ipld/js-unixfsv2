@@ -6,7 +6,7 @@
   "scripts": {
     "build": "npm_config_yes=true npx ipjs@latest build --tests",
     "publish": "npm_config_yes=true npx ipjs@latest publish",
-    "test": "estest test/test-*.js",
+    "test": "hundreds estest test/test-*.js",
     "coverage": "c8 --reporter=html estest test/test-*.js && npx st -d coverage -p 8080"
   },
   "keywords": [],

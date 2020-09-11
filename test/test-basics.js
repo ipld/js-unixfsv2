@@ -65,4 +65,29 @@ export default async test => {
     }
     await testDir(new URL('fixture', import.meta.url), '')
   })
+  test('errors', async test => {
+    const u = new URL('fixture', import.meta.url)
+    const { get, put } = store()
+    let last
+    for await (const block of encoder(Block, u)) {
+      last = block
+      await put(block)
+    }
+    const fs = reader(await last.cid(), get)
+    let threw = true
+    try {
+      await collect(fs.ls('dir2/dir3/index.html/small.txt'))
+      threw = false
+    } catch (e) {
+      if (e.message !== 'index.html is not a directory') throw e
+    }
+    same(threw, true)
+    try {
+      await collect(fs.read('small.txt/nope'))
+      threw = false
+    } catch (e) {
+      if (e.message !== 'small.txt is not a directory') throw e
+    }
+    same(threw, true)
+  })
 }

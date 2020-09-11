@@ -79,8 +79,11 @@ class Reader {
       return d || f
     } else {
       const decoded = head.decodeUnsafe()
-      if (!decoded.content) throw new Error('Not a valid DirEnt')
-      if (!decoded.content.d) throw new Error('Not a directory')
+      // TODO: replace with proper schema validation once we have a schema
+      /* c8 ignore next */
+      if (!decoded.content) /* c8 ignore next */ throw new Error('Not a valid DirEnt')
+      /* c8 ignore next */
+      if (!decoded.content.d) /* c8 ignore next */ throw new Error('Not a directory')
       head = decoded.content.d
     }
     while (parts.length) {
