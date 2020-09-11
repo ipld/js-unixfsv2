@@ -47,17 +47,22 @@ export default async test => {
       await put(block)
     }
     const fs = reader(await last.cid(), get)
-    let buffers = await collect(fs.read('small.txt'))
-    let local = new URL('fixture/small.txt', import.meta.url)
-    same(await fsAsync.readFile(local), Buffer.concat(buffers))
-    let files = await collect(fs.ls())
-    same(files, [ 'small.txt', 'dir2', 'index.html', 'file2', 'file1', 'bits' ])
-    files = await collect(fs.ls('dir2'))
-    same(files, [ 'dir3' ])
-    files = await collect(fs.ls('dir2/dir3'))
-    same(files, [ 'file3', 'index.html' ])
-    buffers = await collect(fs.read('dir2/dir3/index.html'))
-    local = new URL('fixture/dir2/dir3/index.html', import.meta.url)
-    same(await fsAsync.readFile(local), Buffer.concat(buffers))
+
+    const testDir = async (dir, target) => {
+      const ls = await fsAsync.readdir(dir)
+      const files = await collect(fs.ls(target))
+      same(ls.sort(), files.sort())
+      for (const file of files) {
+        const u = new URL(file, dir + '/sub')
+        const stat = await fsAsync.stat(u)
+        if (stat.isDirectory()) {
+          await testDir(u, target + '/' + file)
+        } else {
+          const buffers = await collect(fs.read(target + '/' + file))
+          same(await fsAsync.readFile(u), Buffer.concat(buffers))
+        }
+      }
+    }
+    await testDir(new URL('fixture', import.meta.url), '')
   })
 }
