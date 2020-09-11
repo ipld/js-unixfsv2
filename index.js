@@ -54,18 +54,15 @@ const encoder = async function * (Block, path, chunker) {
 }
 
 const readFile = async function * (reader, parts, start, end) {
-  const block = await reader.traverse(parts)
-  yield * fbl.read(block, reader.get, start, end)
+  const link = await reader.traverse(parts)
+  yield * fbl.read(link, reader.get, start, end)
 }
 
 const toString = b => (new TextDecoder()).decode(b)
 
 const lsDirectory = async function * (reader, parts) {
-  const block = await reader.traverse(parts)
-  const decoded = block.decodeUnsafe()
-  if (!decoded.content) throw new Error('Not a valid DirEnt')
-  if (!decoded.content.d) throw new Error('Not a file')
-  for await (const { key } of hamt.all(decoded.content.d, reader.get, start, end)) {
+  let link = await reader.traverse(parts)
+  for await (const { key } of hamt.all(link, reader.get)) {
     yield toString(key)
   }
 }
@@ -80,16 +77,18 @@ class Reader {
     if (!parts.length) {
       const { d, f } = head.decodeUnsafe().content
       return d || f
-    }
-    while (parts.length) {
-      const key = parts.shift()
+    } else {
       const decoded = head.decodeUnsafe()
       if (!decoded.content) throw new Error('Not a valid DirEnt')
       if (!decoded.content.d) throw new Error('Not a directory')
-      const dirEnt = await hamt.get(decoded.content.d, key, this.get)
+      head = decoded.content.d
+    }
+    while (parts.length) {
+      const key = parts.shift()
+      const dirEnt = await hamt.get(head, key, this.get)
       const { d, f } = dirEnt.content
       if (f && parts.length) throw new Error(`${key} is not a directory`)
-      head = await this.get(d || f)
+      head = d || f
     }
     return head
   }
